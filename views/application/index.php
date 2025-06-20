@@ -31,11 +31,11 @@ $this->params['breadcrumbs'][] = $this->title;
             'fontAwesome' => true
         ],
         'exportConfig' => [
-            GridView::CSV => ['label' => 'Export as CSV', 'filename' => 'application-'.date('Y-m-d')],
-            GridView::HTML => ['label' => 'Export as HTML', 'filename' => 'application-'.date('Y-m-d')],
-            GridView::EXCEL => ['label' => 'Export as EXCEL', 'filename' => 'application-'.date('Y-m-d')],
-            GridView::TEXT => ['label' => 'Export as TEXT', 'filename' => 'application-'.date('Y-m-d')],
-            GridView::JSON => ['label' => 'Export as JSON', 'filename' => 'application-'.date('Y-m-d')],
+            GridView::CSV => ['label' => 'Export as CSV', 'filename' => 'application-' . date('Y-m-d')],
+            GridView::HTML => ['label' => 'Export as HTML', 'filename' => 'application-' . date('Y-m-d')],
+            GridView::EXCEL => ['label' => 'Export as EXCEL', 'filename' => 'application-' . date('Y-m-d')],
+            GridView::TEXT => ['label' => 'Export as TEXT', 'filename' => 'application-' . date('Y-m-d')],
+            GridView::JSON => ['label' => 'Export as JSON', 'filename' => 'application-' . date('Y-m-d')],
         ],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
