@@ -27,6 +27,16 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+        'export' => [
+            'fontAwesome' => true
+        ],
+        'exportConfig' => [
+            GridView::CSV => ['label' => 'Export as CSV', 'filename' => 'app-application-'.date('Y-m-d')],
+            GridView::HTML => ['label' => 'Export as HTML', 'filename' => 'app-application-'.date('Y-m-d')],
+            GridView::EXCEL => ['label' => 'Export as EXCEL', 'filename' => 'app-application-'.date('Y-m-d')],
+            GridView::TEXT => ['label' => 'Export as TEXT', 'filename' => 'app-application-'.date('Y-m-d')],
+            GridView::JSON => ['label' => 'Export as JSON', 'filename' => 'app-application-'.date('Y-m-d')],
+        ],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
