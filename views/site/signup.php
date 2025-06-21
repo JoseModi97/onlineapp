@@ -35,44 +35,36 @@ $this->title = 'Create an Account!'; // Updated title
                             ],
                         ]); ?>
 
-                            <div class="form-group">
-                                <?= $form->field($model, 'username', [
-                                    'inputOptions' => [
-                                        'class' => 'form-control form-control-user',
-                                        'placeholder' => 'Username', // Changed from First Name
-                                        'autofocus' => true
-                                    ]
-                                ])->label(false) ?>
-                            </div>
+                        <div class="form-group">
+                            <?= $form->field($model, 'username', [
+                                'inputOptions' => [
+                                    'class' => 'form-control form-control-user',
+                                    'placeholder' => 'Username', // Changed from First Name
+                                    'autofocus' => true
+                                ]
+                            ])->label(false) ?>
+                        </div>
 
-                            <div class="form-group">
-                                <?= $form->field($model, 'email', [
-                                    'inputOptions' => [
-                                        'class' => 'form-control form-control-user',
-                                        'placeholder' => 'Email Address'
-                                    ]
-                                ])->input('email')->label(false) ?>
-                            </div>
+                        <div class="form-group">
+                            <?= $form->field($model, 'email', [
+                                'inputOptions' => [
+                                    'class' => 'form-control form-control-user',
+                                    'placeholder' => 'Email Address'
+                                ]
+                            ])->input('email')->label(false) ?>
+                        </div>
 
-                            <div class="form-group">
-                                <?= $form->field($model, 'password', [
-                                     'inputOptions' => [
-                                        'class' => 'form-control form-control-user',
-                                        'placeholder' => 'Password'
-                                    ]
-                                ])->passwordInput()->label(false) ?>
-                            </div>
+                        <div class="form-group">
+                            <?= $form->field($model, 'password', [
+                                'inputOptions' => [
+                                    'class' => 'form-control form-control-user',
+                                    'placeholder' => 'Password'
+                                ]
+                            ])->passwordInput()->label(false) ?>
+                        </div>
 
-                            <?= Html::submitButton('Register Account', ['class' => 'btn btn-primary btn-user btn-block', 'name' => 'signup-button']) ?>
+                        <?= Html::submitButton('Register Account', ['class' => 'btn btn-primary btn-user btn-block', 'name' => 'signup-button']) ?>
 
-                            <!-- Social login buttons - keeping structure, Yii integration for these is out of scope for now -->
-                            <hr>
-                            <a href="#" class="btn btn-google btn-user btn-block">
-                                <i class="fab fa-google fa-fw"></i> Register with Google
-                            </a>
-                            <a href="#" class="btn btn-facebook btn-user btn-block">
-                                <i class="fab fa-facebook-f fa-fw"></i> Register with Facebook
-                            </a>
                         <?php ActiveForm::end(); ?>
                         <hr>
                         <div class="text-center">
