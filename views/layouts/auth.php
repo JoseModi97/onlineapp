@@ -47,6 +47,11 @@ $authBundleBaseUrl = Url::to('@web/auth_bundle');
             background-position: center;
             background-size: cover;
         }
+        .bg-signup-svg {
+            background: url('<?= \yii\helpers\Url::to('@web/img/signup.svg') ?>');
+            background-position: center;
+            background-size: cover; /* Or 'contain' or specific dimensions if SVG needs different scaling */
+        }
     </style>
 </head>
 <body class="bg-gradient-primary">
