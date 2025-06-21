@@ -126,7 +126,7 @@ Yii::$app->name = 'Online Application';
         // Assuming app.js or particles.js itself handles initialization.
         // If not, add: particlesJS.load('particles-js', 'path/to/your/particles.json', function() { console.log('particles.js loaded - callback'); });
         // For now, check if existing app.js initializes it.
-        // The original minimal.php had: <script src="<?= Yii::getAlias('@web/js/app.js') ? >"></script>
+        // The original minimal.php had: <script src="<?= Yii::getAlias('@web/js/app.js') ?>"></script>
         // It's likely app.js contains the particlesJS init.
          if (typeof particlesJS !== 'undefined') {
             // Assuming a default particles.json might be in 'js/particles.json' or similar standard location for the project
