@@ -65,7 +65,7 @@ use yii\helpers\Url;
                                 ])->checkbox() ?>
 
                                 <div class="my-1 mx-0" style="color:#999; font-size: 0.8rem; margin-bottom: 1rem; margin-top: 1rem;">
-                                    Do you have an Account? <?= Html::a('Sign Up', ['site/site/signup']) ?>.
+                                    Do you have an Account? <?= Html::a('Sign Up', ['site/signup']) ?>.
                                     <br>
                                     If you forgot your password you can <?= Html::a('reset it', ['site/request-password-reset']) ?>.
                                     <br>
