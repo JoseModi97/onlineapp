@@ -187,6 +187,8 @@ class SiteController extends Controller
 
             Yii::$app->session->setFlash('error', 'Sorry, we are unable to reset password for the provided email address.');
         }
+        // Use the new auth layout
+        $this->layout = '@app/views/layouts/auth.php';
 
         return $this->render('requestPasswordResetToken', [
             'model' => $model,
