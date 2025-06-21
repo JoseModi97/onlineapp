@@ -95,10 +95,18 @@ class SiteController extends Controller
         }
 
         $model->password = '';
-        $this->layout = 'minimal';
-        return $this->render('login', [
-            'model' => $model,
-        ]);
+        // Use the new auth layout
+        $this->layout = '@app/views/layouts/auth.php';
+
+        // Read the static HTML content
+        $htmlContent = file_get_contents(Yii::getAlias('@app/web/auth_bundle/login.html'));
+
+        // Replace placeholders or inject Yii-specific elements if necessary
+        // For now, we render it as is.
+        // The form in login.html is static and won't submit to Yii without modification.
+        // This step focuses on replacing the layout.
+
+        return $this->renderContent($htmlContent);
     }
 
     /**
