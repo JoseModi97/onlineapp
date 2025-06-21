@@ -59,7 +59,7 @@ Yii::$app->name = 'Online Application';
         }
 
         .login-form-container {
-            background-color: rgba(255, 255, 255, 0.15); /* White background for the form card */
+            background-color: #ffffff; /* White background for the form card */
             padding: 2rem; /* Inner spacing for the form card */
             border-radius: 0.5rem; /* Rounded corners for the card */
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Subtle shadow for depth */
