@@ -26,7 +26,22 @@ Yii::$app->name = 'Online Application';
         body {
             overflow-x: hidden; /* Prevent horizontal scroll */
             min-height: 100vh; /* Ensure full viewport height */
-            background-color: #f0f2f5; /* Light grey background for the page */
+            /* background-color: #f0f2f5; */ /* Light grey background for the page */
+        }
+
+        #particles-js {
+            position: fixed; /* Changed from absolute to fixed for true background behavior */
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1; /* Ensure it's behind other content */
+            background-color: #232741; /* Commented out, page background will be used or particles will cover it */
+        }
+
+        canvas {
+            display: block;
+            vertical-align: bottom;
         }
 
         #content-wrapper {
@@ -44,7 +59,7 @@ Yii::$app->name = 'Online Application';
         }
 
         .login-form-container {
-            background-color: #ffffff; /* White background for the form card */
+            background-color: rgba(255, 255, 255, 0.15); /* White background for the form card */
             padding: 2rem; /* Inner spacing for the form card */
             border-radius: 0.5rem; /* Rounded corners for the card */
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Subtle shadow for depth */
@@ -59,6 +74,7 @@ Yii::$app->name = 'Online Application';
 
 <body class="d-flex flex-column min-vh-100"> <!-- bg-light can be removed if body style handles background -->
     <?php $this->beginBody() ?>
+    <div id="particles-js"></div>
 
     <div class="d-flex flex-grow-1"> <!-- Added flex-grow-1 to allow this div to expand -->
 
@@ -90,6 +106,8 @@ Yii::$app->name = 'Online Application';
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script src="<?= Yii::getAlias('@web/js/particles.js') ?>"></script>
+    <script src="<?= Yii::getAlias('@web/js/app.js') ?>"></script>
     <?php $this->endBody() ?>
 </body>
 
