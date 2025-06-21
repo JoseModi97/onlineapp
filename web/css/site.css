@@ -90,3 +90,34 @@ a.desc:after {
 .form-group {
     margin-bottom: 1rem;
 }
+
+/* Styling for the authentication pages footer */
+.auth-footer {
+    position: fixed; /* Fixed position */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust for centering */
+    bottom: 20px; /* Distance from bottom */
+    padding: 10px 0; /* Padding top/bottom */
+    width: auto; /* Auto width based on content */
+    min-width: 300px; /* Minimum width */
+    background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent white background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow */
+    z-index: 1000; /* Ensure it's above other content if any overlaps */
+}
+
+.auth-footer small {
+    color: #555; /* Dark grey text color for better readability */
+    font-size: 0.85rem;
+}
+
+.auth-footer a {
+    color: #007bff; /* Standard link blue, or match your theme's link color */
+    text-decoration: none;
+    padding: 0 5px;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+    color: #0056b3; /* Darker blue on hover */
+}
