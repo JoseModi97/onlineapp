@@ -99,7 +99,7 @@ class SiteController extends Controller
         $this->layout = '@app/views/layouts/auth.php';
 
         // Render the new login view with ActiveForm
-        return $this->render('login_new', [
+        return $this->render('login', [
             'model' => $model,
         ]);
     }
