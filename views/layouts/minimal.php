@@ -63,8 +63,19 @@ Yii::$app->name = 'Online Application';
         .login-form-container {
             background-color: #ffffff; /* White background for the form card */
             padding: 2rem; /* Inner spacing for the form card */
-            border-radius: 0.5rem; /* Rounded corners for the card */
+            border-radius: 0.25rem; /* Rounded corners for the card */
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Subtle shadow for depth */
+        }
+
+        .login-form-container .btn-primary {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        /* Optional: Style for hover/focus state for the button */
+        .login-form-container .btn-primary:hover,
+        .login-form-container .btn-primary:focus {
+            background-color: #004080; /* Darker shade for hover/focus */
+            border-color: #00376b;
         }
 
         /* page-content-wrapper might not need specific padding if login-form-container handles it */
