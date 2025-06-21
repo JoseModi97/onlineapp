@@ -25,7 +25,7 @@ use yii\helpers\Url;
                 <div class="card-body p-0">
                     <!-- Nested Row within Card Body -->
                     <div class="row">
-                        <div class="col-lg-6 d-none d-lg-block bg-login-image" style="background: url('<?= Url::to('@web/auth_bundle/img/login-image.jpg') ?>'); background-position: center; background-size: cover;"></div>
+                        <div class="col-lg-6 d-none d-lg-block bg-login-image" style="background: url('<?= Url::to('@web/img/9175328_6531.svg') ?>'); background-position: center; background-size: cover;"></div>
                         <div class="col-lg-6">
                             <div class="p-5">
                                 <div class="text-center">
