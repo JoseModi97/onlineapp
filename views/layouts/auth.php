@@ -36,7 +36,9 @@ $this->registerJsFile(Url::to('@web/auth_bundle/js/sb-admin-2.min.js'), ['positi
 <body class="bg-gradient-primary">
 <?php $this->beginBody() ?>
 
-    <?= $content ?>
+    <div class="d-flex align-items-center justify-content-center min-vh-100">
+        <?= $content ?>
+    </div>
 
 <?php $this->endBody() ?>
 </body>
