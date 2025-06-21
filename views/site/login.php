@@ -60,27 +60,22 @@ use yii\helpers\Url;
                                 <?= $form->field($model, 'rememberMe', [
                                      'template' => "<div class=\"form-group\"><div class=\"custom-control custom-checkbox small\">{input} {label}</div></div>\n{error}",
                                      'labelOptions' => ['class' => 'custom-control-label'],
-                                     'inputOptions' => ['class' => 'custom-control-input']
+                                     'inputOptions' => ['class' => 'custom-control-input'],
+                                     // Template might need adjustment if default checkbox styling of SB Admin is very different
                                 ])->checkbox() ?>
 
-                                <?= Html::submitButton('Login', ['class' => 'btn btn-primary btn-user btn-block', 'name' => 'login-button']) ?>
+                                <div class="my-1 mx-0" style="color:#999; font-size: 0.8rem; margin-bottom: 1rem; margin-top: 1rem;">
+                                    If you forgot your password you can <?= Html::a('reset it', ['site/request-password-reset']) ?>.
+                                    <br>
+                                    Need new verification email? <?= Html::a('Resend', ['site/resend-verification-email']) ?>
+                                </div>
 
-                                <hr>
-                                <!-- Social login buttons - keep as links for now, functionality is separate -->
-                                <a href="#" class="btn btn-google btn-user btn-block">
-                                    <i class="fab fa-google fa-fw"></i> Login with Google
-                                </a>
-                                <a href="#" class="btn btn-facebook btn-user btn-block">
-                                    <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
-                                </a>
+                                <div class="form-group">
+                                    <?= Html::submitButton('Login', ['class' => 'btn btn-primary btn-user btn-block', 'name' => 'login-button']) ?>
+                                </div>
+
                                 <?php ActiveForm::end(); ?>
-                                <hr>
-                                <div class="text-center">
-                                    <a class="small" href="<?= Url::to(['site/request-password-reset']) ?>">Forgot Password?</a>
-                                </div>
-                                <div class="text-center">
-                                    <a class="small" href="<?= Url::to(['site/signup']) ?>">Create an Account!</a>
-                                </div>
+                                <!-- Removed social login, forgot password, and create account links from here -->
                             </div>
                         </div>
                     </div>
@@ -92,6 +87,3 @@ use yii\helpers\Url;
     </div>
 
 </div>
-<!-- Note: The original HTML had JS includes at the end of the body. -->
-<!-- These are now expected to be handled by the layout file `views/layouts/auth.php` -->
-<!-- and Yii's asset manager. -->
