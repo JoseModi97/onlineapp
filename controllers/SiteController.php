@@ -260,6 +260,9 @@ class SiteController extends Controller
             Yii::$app->session->setFlash('error', 'Sorry, we are unable to resend verification email for the provided email address.');
         }
 
+        // Use the new auth layout
+        $this->layout = '@app/views/layouts/auth.php';
+
         return $this->render('resendVerificationEmail', [
             'model' => $model
         ]);
