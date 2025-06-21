@@ -35,7 +35,7 @@ Yii::$app->name = 'Online Application';
             height: 100%;
             top: 0;
             left: 0;
-            z-index: -1; /* Ensure it's behind other content */
+            z-index: 0; /* Ensure it's behind other content */
             background-color: #232741; /* Commented out, page background will be used or particles will cover it */
         }
 
@@ -50,6 +50,8 @@ Yii::$app->name = 'Online Application';
             justify-content: center;
             align-items: center;
             flex-grow: 1; /* Takes available vertical space, pushing footer down */
+            position: relative;
+            z-index: 1;
         }
 
         /* Minimal layout styles - main-content now acts as a simple wrapper */
