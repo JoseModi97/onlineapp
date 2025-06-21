@@ -30,12 +30,8 @@ $this->params['breadcrumbs'][] = $this->title;
         'export' => [
             'fontAwesome' => true
         ],
-        'exportConfig' => [
-            GridView::CSV => ['label' => 'Export as CSV', 'filename' => 'applicant-contacts-'.date('Y-m-d')],
-            GridView::HTML => ['label' => 'Export as HTML', 'filename' => 'applicant-contacts-'.date('Y-m-d')],
-            GridView::EXCEL => ['label' => 'Export as EXCEL', 'filename' => 'applicant-contacts-'.date('Y-m-d')],
-            GridView::TEXT => ['label' => 'Export as TEXT', 'filename' => 'applicant-contacts-'.date('Y-m-d')],
-            GridView::JSON => ['label' => 'Export as JSON', 'filename' => 'applicant-contacts-'.date('Y-m-d')],
+        'panel' => [
+            'title' => 'Hello'
         ],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
