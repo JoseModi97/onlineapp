@@ -162,6 +162,9 @@ class SiteController extends Controller
             return $this->goHome();
         }
 
+        // Use the new auth layout
+        $this->layout = '@app/views/layouts/auth.php';
+
         return $this->render('signup', [
             'model' => $model,
         ]);

@@ -6,22 +6,10 @@
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-// Registering assets directly from the auth_bundle
-// It's generally better to create a dedicated AssetBundle for this,
-// but for a direct replacement of a static HTML, this is a quicker approach.
-
-$this->registerCssFile(Url::to('@web/auth_bundle/vendor/fontawesome-free/css/all.min.css'));
-$this->registerCssFile('https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i');
-$this->registerCssFile(Url::to('@web/auth_bundle/css/sb-admin-2.min.css'));
-$this->registerCssFile(Url::to('@web/css/site.css')); // Added site.css
-
-$this->registerJsFile(Url::to('@web/auth_bundle/vendor/jquery/jquery.min.js'), ['position' => \yii\web\View::POS_END]);
-$this->registerJsFile(Url::to('@web/auth_bundle/vendor/bootstrap/js/bootstrap.bundle.min.js'), ['position' => \yii\web\View::POS_END]);
-$this->registerJsFile(Url::to('@web/auth_bundle/vendor/jquery-easing/jquery.easing.min.js'), ['position' => \yii\web\View::POS_END]);
-$this->registerJsFile(Url::to('@web/auth_bundle/js/sb-admin-2.min.js'), ['position' => \yii\web\View::POS_END]);
+// We need to construct correct URLs for assets within auth_bundle
+$authBundleBaseUrl = Url::to('@web/auth_bundle');
 
 ?>
-<?php $this->beginPage() ?>
 <!DOCTYPE html>
 <html lang="<?= Yii::$app->language ?>">
 <head>
@@ -30,28 +18,52 @@ $this->registerJsFile(Url::to('@web/auth_bundle/js/sb-admin-2.min.js'), ['positi
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <?= Html::csrfMetaTags() ?>
+    <?php $this->registerCsrfMetaTags() ?>
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
+
+    <!-- Custom fonts for this template-->
+    <link href="<?= $authBundleBaseUrl ?>/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="<?= $authBundleBaseUrl ?>/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <!-- Custom CSS for background image -->
+    <style>
+        .bg-register-image {
+            background: url("<?= $authBundleBaseUrl ?>/img/register-image.jpg");
+            background-position: center;
+            background-size: cover;
+        }
+        /* Added similar styles for login and password pages, anticipating shared layout */
+        .bg-login-image {
+            background: url("<?= $authBundleBaseUrl ?>/img/login-image.jpg");
+            background-position: center;
+            background-size: cover;
+        }
+        .bg-password-image {
+            background: url("<?= $authBundleBaseUrl ?>/img/password-image.jpg");
+            background-position: center;
+            background-size: cover;
+        }
+    </style>
 </head>
 <body class="bg-gradient-primary">
 <?php $this->beginBody() ?>
 
-    <div class="d-flex align-items-center justify-content-center min-vh-100">
-        <?= $content ?>
-    </div>
+    <?= $content ?>
 
-    <footer class="auth-footer">
-        <div class="container text-center">
-            <small>
-                <?= Html::a('About', ['/site/about']) ?> |
-                <?= Html::a('Contact', ['/site/contact']) ?> |
-                <?= Html::a('Home', ['/site/index']) ?>
-            </small>
-        </div>
-    </footer>
+    <!-- Bootstrap core JavaScript-->
+    <script src="<?= $authBundleBaseUrl ?>/vendor/jquery/jquery.min.js"></script>
+    <script src="<?= $authBundleBaseUrl ?>/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="<?= $authBundleBaseUrl ?>/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="<?= $authBundleBaseUrl ?>/js/sb-admin-2.min.js"></script>
 
 <?php $this->endBody() ?>
 </body>
 </html>
-<?php $this->endPage() ?>
