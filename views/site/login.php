@@ -58,13 +58,15 @@ use yii\helpers\Url;
                                 ])->passwordInput() ?>
 
                                 <?= $form->field($model, 'rememberMe', [
-                                     'template' => "<div class=\"form-group\"><div class=\"custom-control custom-checkbox small\">{input} {label}</div></div>\n{error}",
-                                     'labelOptions' => ['class' => 'custom-control-label'],
-                                     'inputOptions' => ['class' => 'custom-control-input'],
-                                     // Template might need adjustment if default checkbox styling of SB Admin is very different
+                                    'template' => "<div class=\"form-group\"><div class=\"custom-control custom-checkbox small\">{input} {label}</div></div>\n{error}",
+                                    'labelOptions' => ['class' => 'custom-control-label'],
+                                    'inputOptions' => ['class' => 'custom-control-input'],
+                                    // Template might need adjustment if default checkbox styling of SB Admin is very different
                                 ])->checkbox() ?>
 
                                 <div class="my-1 mx-0" style="color:#999; font-size: 0.8rem; margin-bottom: 1rem; margin-top: 1rem;">
+                                    Do you have an Account? <?= Html::a('Sign Up', ['site/site/signup']) ?>.
+                                    <br>
                                     If you forgot your password you can <?= Html::a('reset it', ['site/request-password-reset']) ?>.
                                     <br>
                                     Need new verification email? <?= Html::a('Resend', ['site/resend-verification-email']) ?>
