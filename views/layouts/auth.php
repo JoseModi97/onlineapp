@@ -13,6 +13,7 @@ use yii\helpers\Url;
 $this->registerCssFile(Url::to('@web/auth_bundle/vendor/fontawesome-free/css/all.min.css'));
 $this->registerCssFile('https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i');
 $this->registerCssFile(Url::to('@web/auth_bundle/css/sb-admin-2.min.css'));
+$this->registerCssFile(Url::to('@web/css/site.css')); // Added site.css
 
 $this->registerJsFile(Url::to('@web/auth_bundle/vendor/jquery/jquery.min.js'), ['position' => \yii\web\View::POS_END]);
 $this->registerJsFile(Url::to('@web/auth_bundle/vendor/bootstrap/js/bootstrap.bundle.min.js'), ['position' => \yii\web\View::POS_END]);
@@ -39,6 +40,16 @@ $this->registerJsFile(Url::to('@web/auth_bundle/js/sb-admin-2.min.js'), ['positi
     <div class="d-flex align-items-center justify-content-center min-vh-100">
         <?= $content ?>
     </div>
+
+    <footer class="auth-footer">
+        <div class="container text-center">
+            <small>
+                <?= Html::a('About', ['/site/about']) ?> |
+                <?= Html::a('Contact', ['/site/contact']) ?> |
+                <?= Html::a('Home', ['/site/index']) ?>
+            </small>
+        </div>
+    </footer>
 
 <?php $this->endBody() ?>
 </body>
