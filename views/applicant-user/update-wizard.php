@@ -32,14 +32,51 @@ $stepTitles = [
 $navItems = [];
 $applicantUserIdForNav = $model->applicant_user_id ?? Yii::$app->session->get('applicant_wizard_applicant_user_id');
 
-foreach ($steps as $stepKey) {
+// Find the index of the current step
+$currentStepIndex = array_search($currentStep, $steps);
+if ($currentStepIndex === false && !empty($steps)) {
+    // Default to the first step if currentStep is not found or is empty,
+    // which can happen at the beginning or end of the wizard.
+    // If wizard is "done" ($currentStep is null/empty), all tabs can be considered "past" or accessible.
+    // For disabling purposes, setting it beyond the last step effectively enables all.
+    $currentStepIndex = $currentStep === null ? count($steps) : 0;
+}
+
+
+foreach ($steps as $index => $stepKey) {
+    $isFutureStep = $index > $currentStepIndex;
+    // Disable step if it's a future step AND ( (it's not the first step AND no applicant user ID exists yet) OR it's simply a future step beyond current)
+    // The first step ('personal-details') should always be enabled if no applicant_user_id is present.
+    $isDisabled = $isFutureStep;
+
+    // Special condition for the very first step: it should not be disabled by default if no user ID exists.
+    // However, if an applicant_user_id DOES exist, then the normal "future step" logic applies.
+    // This also means if we are on step 0, steps 1, 2, etc. are disabled if no applicant_user_id.
+    // If we are beyond step 0 (meaning applicant_user_id must exist), then only future steps are disabled.
+    if ($index > 0 && !$applicantUserIdForNav && $steps[0] === $stepKey && $currentStepIndex === 0) {
+        // If it's a step after the first, and we don't have an applicant ID yet (meaning first step isn't saved),
+        // and we are currently on the first step, then this subsequent step should be disabled.
+        // This logic is a bit complex due to initial state vs. navigating back.
+        // Simplified: If no applicant ID, only the current step (presumably the first) or past steps are enabled.
+    }
+
+    if (!$applicantUserIdForNav && $index > 0) { // If no applicant_user_id, disable all steps except the first one
+        $isDisabled = true;
+    } else {
+        $isDisabled = $isFutureStep;
+    }
+    // Ensure current step is never marked as disabled, even if logic somehow implies it.
+    if ($stepKey === $currentStep) {
+        $isDisabled = false;
+    }
+
+
     $navItems[] = [
         'label' => $stepTitles[$stepKey] ?? ucfirst(str_replace('-', ' ', $stepKey)),
-        'url' => ['update-wizard', 'currentStep' => $stepKey, 'applicant_user_id' => $applicantUserIdForNav],
+        'url' => $isDisabled ? '#' : ['update-wizard', 'currentStep' => $stepKey, 'applicant_user_id' => $applicantUserIdForNav],
         'active' => $currentStep === $stepKey,
-        // To implement disabling future steps, you'd need logic to check if a step is "unlocked"
-        // For example, by checking if previous steps' data exists in session or if applicant_user_id is set.
-        // 'disabled' => ($stepKey !== self::STEP_PERSONAL_DETAILS && !$applicantUserIdForNav) // Example: disable if not first step and no user ID
+        'disabled' => $isDisabled,
+        'linkOptions' => $isDisabled ? ['class' => 'disabled-link', 'tabindex' => "-1", 'aria-disabled' => "true"] : [],
     ];
 }
 ?>
