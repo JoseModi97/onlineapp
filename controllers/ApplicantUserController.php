@@ -113,9 +113,16 @@ class ApplicantUserController extends Controller
                         Yii::$app->session->setFlash('error', 'An error occurred: ' . $e->getMessage());
                     }
                 } else {
-                    // Combine errors if needed or handle them as appropriate
-                    // For now, just letting the view render the errors on each model
-                     Yii::$app->session->setFlash('error', 'Validation failed. Please check the form for errors.');
+                    // Combine errors for a more descriptive flash message
+                    $errorMessages = [];
+                    foreach ($model->getErrors() as $attribute => $errors) {
+                        $errorMessages[] = $model->getAttributeLabel($attribute) . ': ' . implode(', ', $errors);
+                    }
+                    foreach ($appApplicantModel->getErrors() as $attribute => $errors) {
+                        $errorMessages[] = $appApplicantModel->getAttributeLabel($attribute) . ': ' . implode(', ', $errors);
+                    }
+                    $flashMessage = 'Validation failed. Please check the following: <br/>' . implode('<br/>', $errorMessages);
+                    Yii::$app->session->setFlash('error', $flashMessage);
                 }
             }
         }
