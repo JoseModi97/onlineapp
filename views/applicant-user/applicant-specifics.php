@@ -14,6 +14,8 @@ use yii\jui\DatePicker;
         'id' => 'applicant-specifics-form',
     ]); ?>
 
+    <?= $form->errorSummary($appApplicantModel); // Added error summary ?>
+
     <?= $form->field($appApplicantModel, 'gender')->dropDownList(['Male' => 'Male', 'Female' => 'Female'], ['prompt' => 'Select Gender']) ?>
     <?= $form->field($appApplicantModel, 'dob')->widget(DatePicker::class, [
         'options' => ['class' => 'form-control'],
