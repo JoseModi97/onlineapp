@@ -11,8 +11,6 @@ use app\models\search\AppApplicantUserSearch;
 use yii\web\NotFoundHttpException;
 use app\models\AppApplicant;
 use yii\helpers\ArrayHelper;
-use yii\web\NotFoundHttpException; // Already present but good to confirm
-use Yii; // For Yii::$app->session
 
 class ApplicantUserController extends Controller
 {
@@ -161,19 +159,19 @@ class ApplicantUserController extends Controller
                                 Yii::error($model->errors);
                             }
                         } else { // If updating, just save
-                             if (!$model->save(false)) {
+                            if (!$model->save(false)) {
                                 $isValid = false;
                                 $stepRenderData['message'] = 'Failed to update personal details.';
                                 Yii::error($model->errors);
-                             }
+                            }
                         }
                     } else {
-                         $stepRenderData['message'] = 'Please correct errors in Personal Details.';
+                        $stepRenderData['message'] = 'Please correct errors in Personal Details.';
                     }
                 } elseif ($currentStep === self::STEP_APPLICANT_SPECIFICS) {
                     // Ensure applicant_user_id is set on appApplicantModel before loading
                     if ($applicant_user_id && !$appApplicantModel->applicant_user_id) {
-                         $appApplicantModel->applicant_user_id = $applicant_user_id;
+                        $appApplicantModel->applicant_user_id = $applicant_user_id;
                     }
                     if ($appApplicantModel->load($postData) && $appApplicantModel->validate()) {
                         $session->set($stepSessionKey, $appApplicantModel->getAttributes());
@@ -200,9 +198,9 @@ class ApplicantUserController extends Controller
                             $nextStepSessionKey = $wizardDataKeyPrefix . 'data_step_' . $currentStep;
                             $nextStepDataFromSession = $session->get($nextStepSessionKey, []);
                             if ($currentStep === self::STEP_PERSONAL_DETAILS || $currentStep === self::STEP_ACCOUNT_SETTINGS) {
-                                 // We need to ensure $model is the correct one for this step
-                                 // If $applicant_user_id was just created, $model should already be the correct one.
-                                 // If we are navigating back and forth, $model is the main user model.
+                                // We need to ensure $model is the correct one for this step
+                                // If $applicant_user_id was just created, $model should already be the correct one.
+                                // If we are navigating back and forth, $model is the main user model.
                                 $model->setAttributes($nextStepDataFromSession, false);
                             } elseif ($currentStep === self::STEP_APPLICANT_SPECIFICS) {
                                 $appApplicantModel->setAttributes($nextStepDataFromSession, false);
