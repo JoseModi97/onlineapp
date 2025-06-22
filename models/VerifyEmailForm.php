@@ -4,6 +4,7 @@ namespace app\models;
 
 use app\models\User;
 use app\models\AppApplicantUser;
+use Yii;
 use yii\base\InvalidArgumentException;
 use yii\base\Model;
 
@@ -57,9 +58,10 @@ class VerifyEmailForm extends Model
             // first_name is no longer required and will not be set here.
             $appApplicant = new AppApplicant();
             if ($appApplicantUser->save()) {
-                $appApplicant->applicant_user_id = $appApplicantUser->applicant_user_id;
-                $appApplicant->applicant_user_id = $appApplicantUser->applicant_user_id;
-                $appApplicant->save();
+
+                Yii::$app->db->createCommand()->insert('onlineapp.app_applicant', [
+                    'applicant_user_id' => $appApplicantUser->applicant_user_id,
+                ])->execute();
             }
             if (!$appApplicantUser->save()) {
                 // Handle error if AppApplicantUser fails to save
