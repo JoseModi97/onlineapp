@@ -3,9 +3,6 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
-<?php
-// Ensure this view receives $model directly, not via $event
-?>
 /** @var yii\web\View $this */
 /** @var app\models\AppApplicantUser $model */
 /** @var yii\widgets\ActiveForm $form */

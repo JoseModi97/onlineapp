@@ -4,9 +4,6 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\jui\DatePicker;
 
-<?php
-// Ensure this view receives $appApplicantModel directly
-?>
 /** @var yii\web\View $this */
 /** @var app\models\AppApplicant $appApplicantModel */
 /** @var yii\widgets\ActiveForm $form */
