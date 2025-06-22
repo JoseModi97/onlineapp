@@ -35,13 +35,13 @@ class AppApplicant extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['gender', 'dob', 'religion', 'country_code', 'national_id', 'marital_status'], 'default', 'value' => null],
             [['applicant_user_id'], 'required'],
-            [['applicant_user_id', 'country_code', 'national_id'], 'default', 'value' => null],
             [['applicant_user_id', 'country_code', 'national_id'], 'integer'],
-            [['dob'], 'safe'],
+            [['dob'], 'date', 'format' => 'php:Y-m-d'], // Assuming Y-m-d format, adjust if needed
             [['gender', 'marital_status'], 'string', 'max' => 30],
             [['religion'], 'string', 'max' => 50],
+            // Adding required rules for fields that are likely essential for an applicant profile
+            [['gender', 'dob', 'marital_status', 'national_id', 'country_code'], 'required'],
             [['applicant_user_id'], 'exist', 'skipOnError' => true, 'targetClass' => AppApplicantUser::class, 'targetAttribute' => ['applicant_user_id' => 'applicant_user_id']],
         ];
     }

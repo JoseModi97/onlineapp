@@ -76,16 +76,54 @@ class ApplicantUserController extends Controller
      * @return string|\yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
+use app\models\AppApplicant;
+
     public function actionUpdateWizard($applicant_user_id)
     {
         $model = $this->findModel($applicant_user_id);
+        $appApplicantModel = $model->getAppApplicant()->one();
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'applicant_user_id' => $model->applicant_user_id]);
+        if (!$appApplicantModel) {
+            $appApplicantModel = new AppApplicant();
+            $appApplicantModel->applicant_user_id = $model->applicant_user_id;
+        }
+
+        if ($this->request->isPost) {
+            $modelLoaded = $model->load($this->request->post());
+            $appApplicantModelLoaded = $appApplicantModel->load($this->request->post());
+
+            if ($modelLoaded && $appApplicantModelLoaded) {
+                $validUser = $model->validate();
+                $validApplicant = $appApplicantModel->validate();
+
+                if ($validUser && $validApplicant) {
+                    $transaction = Yii::$app->db->beginTransaction();
+                    try {
+                        if ($model->save(false)) {
+                            $appApplicantModel->applicant_user_id = $model->applicant_user_id; // Ensure it's set
+                            if ($appApplicantModel->save(false)) {
+                                $transaction->commit();
+                                Yii::$app->session->setFlash('success', 'Applicant details updated successfully.');
+                                return $this->redirect(['view', 'applicant_user_id' => $model->applicant_user_id]);
+                            }
+                        }
+                        $transaction->rollBack();
+                        Yii::$app->session->setFlash('error', 'Error saving applicant details.');
+                    } catch (\Exception $e) {
+                        $transaction->rollBack();
+                        Yii::$app->session->setFlash('error', 'An error occurred: ' . $e->getMessage());
+                    }
+                } else {
+                    // Combine errors if needed or handle them as appropriate
+                    // For now, just letting the view render the errors on each model
+                     Yii::$app->session->setFlash('error', 'Validation failed. Please check the form for errors.');
+                }
+            }
         }
 
         return $this->render('update-wizard', [
             'model' => $model,
+            'appApplicantModel' => $appApplicantModel,
         ]);
     }
 

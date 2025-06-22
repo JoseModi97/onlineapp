@@ -4,6 +4,7 @@ use yii\helpers\Html;
 
 /** @var yii\web\View $this */
 /** @var app\models\AppApplicantUser $model */
+/** @var app\models\AppApplicant $appApplicantModel */
 
 $this->title = 'Update App Applicant User: ' . $model->applicant_user_id;
 $this->params['breadcrumbs'][] = ['label' => 'App Applicant Users', 'url' => ['index']];
@@ -16,6 +17,7 @@ $this->params['breadcrumbs'][] = 'Update';
 
     <?= $this->render('_form_wizard', [
         'model' => $model,
+        'appApplicantModel' => $appApplicantModel,
     ]) ?>
 
 </div>

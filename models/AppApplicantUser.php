@@ -26,14 +26,6 @@ use Yii;
  */
 class AppApplicantUser extends \yii\db\ActiveRecord
 {
-
-    public $gender;
-    public $dob;
-    public $country_code;
-    public $national_id;
-    public $marital_status;
-
-
     /**
      * {@inheritdoc}
      */
@@ -48,13 +40,13 @@ class AppApplicantUser extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['surname', 'other_name', 'email_address', 'country_code', 'mobile_no', 'password', 'activation_code', 'salt', 'status', 'date_registered', 'reg_token', 'profile_image', 'change_pass', 'username', 'first_name'], 'default', 'value' => null],
-            [['date_registered', 'gender', 'dob', 'country_code', 'national_id', 'marital_status'], 'safe'],
+            [['surname', 'other_name', 'email_address', 'mobile_no', 'password', 'activation_code', 'salt', 'status', 'date_registered', 'reg_token', 'profile_image', 'change_pass', 'username', 'first_name'], 'default', 'value' => null],
+            [['date_registered'], 'safe'],
             // [['first_name'], 'required'], // Username will be set from User model, so not required here initially. Made optional as per user request.
             [['change_pass'], 'string'],
             [['surname', 'email_address', 'activation_code', 'salt', 'reg_token'], 'string', 'max' => 100],
             [['other_name'], 'string', 'max' => 150],
-            [['country_code'], 'string', 'max' => 15],
+            // [['country_code'], 'string', 'max' => 15], // Property removed, was for AppApplicant
             [['mobile_no', 'status'], 'string', 'max' => 30],
             [['password'], 'string', 'max' => 200],
             [['profile_image', 'first_name', 'username'], 'string', 'max' => 255],
