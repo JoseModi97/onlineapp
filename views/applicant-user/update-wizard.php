@@ -162,74 +162,68 @@ $this->registerJs("
     //    - Redirect back, setting the next step.
     //    - JS on page load navigates to the correct step.
 
-    // This is the most direct way to use the plugin as-is for visuals/flow,
-    // but changes the save behavior to a single final save.
-    // User will be informed if this change is significant.
+    // --- Updated JS for client-side validation using beforeNext ---
 
-    // --- New JS for client-side validation on 'Next' click ---
-    var multiStepPluginInstance = wizardForm.data('multiStepForm'); // Assuming plugin stores itself with .data()
+    wizardForm.multiStepForm({
+        beforeNext: function(currentIndex, currentTabElement) {
+            // 'this' inside this callback refers to the form element, thanks to .call(form,...) in the plugin
+            var yiiForm = $(this);
 
-    if (!multiStepPluginInstance) {
-        // Fallback if .data() doesn't retrieve the instance as expected,
-        // we might need to modify the plugin to return 'this' or store itself.
-        // For now, we'll call navigateTo on the jQuery object if instance is not found.
-        // This assumes the navigateTo function is attached directly to the jQuery object by the plugin.
-        multiStepPluginInstance = wizardForm;
-    }
+            // Trigger Yii's client-side validation for the whole form
+            yiiForm.yiiActiveForm('validate');
 
+            // Crucially, return false here to prevent the plugin from navigating immediately.
+            // Navigation will be handled in the 'afterValidate' event if validation passes.
+            return false;
+        }
+    }).navigateTo(<?php echo $currentStepIndex; ?>); // Navigate to the initial step
 
-    wizardForm.find('.next').off('click').on('click', function(e) {
-        e.preventDefault();
-        e.stopImmediatePropagation(); // Important to stop the original plugin's next handler
+    // Setup the afterValidate event handler for the form
+    // This handler will decide whether to navigate after validation is complete
+    wizardForm.off('afterValidate.customWizardValidation').on('afterValidate.customWizardValidation', function (event, messages, errorAttributes) {
+        // 'this' here is the form element
+        var yiiForm = $(this);
+        var currentTab = yiiForm.find('.tab.current'); // Get the current tab again
+        var currentTabHasErrors = false;
 
-        var currentTab = wizardForm.find('.tab.current');
+        if (errorAttributes && errorAttributes.length > 0) {
+            $.each(errorAttributes, function (i, attr) {
+                // Check if the field with error (attr.id) is within the currentTab
+                if (currentTab.find('#' + attr.id).length > 0) {
+                    currentTabHasErrors = true;
+                    return false; // Break loop, error found in current tab
+                }
+            });
+        }
 
-        // Trigger validation for the whole form
-        wizardForm.yiiActiveForm('validate');
-
-        // Listen for the afterValidate event to check results
-        // Use .off().one() to ensure the handler is attached once per click and then removed
-        wizardForm.off('afterValidate.customWizardValidation').one('afterValidate.customWizardValidation', function (event, messages, errorAttributes) {
-            var currentTabHasErrors = false;
+        if (!currentTabHasErrors) {
+            var tabs = yiiForm.find('.tab');
+            // Determine current index based on the .current class, as 'currentIndex' from beforeNext might be stale if validation took time
+            var currentIndex = tabs.index(currentTab);
+            if (currentIndex < tabs.length - 1) {
+                // Call the plugin's navigateTo method.
+                yiiForm.navigateTo(currentIndex + 1);
+            }
+        } else {
+            // Errors exist in the current tab, do not navigate.
+            // Focus the first field with an error in the current tab for better UX
+            var firstErrorField = null;
             if (errorAttributes && errorAttributes.length > 0) {
                 $.each(errorAttributes, function (i, attr) {
-                    // Check if the field with error (attr.id) is within the currentTab
-                    if (currentTab.find('#' + attr.id).length > 0) {
-                        currentTabHasErrors = true;
-                        return false; // Break loop, error found in current tab
+                    var fieldInTab = currentTab.find('#' + attr.id);
+                    if (fieldInTab.length > 0) {
+                        firstErrorField = fieldInTab;
+                        return false; // Break loop
                     }
                 });
             }
-
-            if (!currentTabHasErrors) {
-                var tabs = wizardForm.find('.tab');
-                var currentIndex = tabs.index(currentTab);
-                if (currentIndex < tabs.length - 1) {
-                    // Call the plugin's navigateTo method.
-                    // The plugin attaches `navigateTo` to the form object itself.
-                    wizardForm.navigateTo(currentIndex + 1);
-                }
+            if (firstErrorField && firstErrorField.length > 0) {
+                firstErrorField.first().focus();
             } else {
-                // Errors exist in the current tab, do not navigate.
-                // Focus the first field with an error in the current tab for better UX
-                var firstErrorField = null;
-                if (errorAttributes && errorAttributes.length > 0) {
-                    $.each(errorAttributes, function (i, attr) {
-                        var fieldInTab = currentTab.find('#' + attr.id);
-                        if (fieldInTab.length > 0) {
-                            firstErrorField = fieldInTab;
-                            return false; // Break loop
-                        }
-                    });
-                }
-                if (firstErrorField && firstErrorField.length > 0) {
-                    firstErrorField.first().focus();
-                } else {
-                     // Fallback: if specific error field not found in tab, but tab has errors
-                     currentTab.find('.is-invalid:visible').first().focus();
-                }
+                 // Fallback: if specific error field not found in tab, but tab has errors
+                 currentTab.find('.is-invalid:visible').first().focus();
             }
-        });
+        }
     });
 
 ", \yii\web\View::POS_READY);

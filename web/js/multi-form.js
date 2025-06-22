@@ -36,18 +36,41 @@
         form.navigateTo(curIndex() - 1);
       });
 
-      /* Next button goes forward iff current block validates */
+      /* Next button goes forward if conditions (including optional beforeNext callback) are met */
       form.find('.next').click(function() {
+        // Call beforeNext callback if provided
+        if (typeof args.beforeNext === 'function') {
+            // .call(form, ...) ensures 'this' inside beforeNext refers to the form element
+            // It passes the current step index and the jQuery object for the current tab
+            if (args.beforeNext.call(form, curIndex(), tabs.filter('.current')) === false) {
+                return; // Stop processing if beforeNext returns false
+            }
+        }
+
+        // Original plugin's own validation logic (we are not using this part with Yii)
+        // This block is less relevant if beforeNext is designed to always return false for async validation.
         if('validations' in args && typeof args.validations === 'object' && !$.isArray(args.validations)){
           if(!('noValidate' in args) || (typeof args.noValidate === 'boolean' && !args.noValidate)){
-            form.validate(args.validations);
-            if(form.valid() == true){
-              form.navigateTo(curIndex() + 1);
-              return true;
-            }
-            return false;
+            // Assuming form.validate and form.valid are from something like jQuery Validation plugin
+            // form.validate(args.validations);
+            // if(form.valid() == true){
+            //   form.navigateTo(curIndex() + 1);
+            //   return true; // Successfully navigated after plugin's validation
+            // }
+            // return false; // Plugin's validation failed
+
+            // Simplified: if plugin has its own validation, it should handle navigation or stopping.
+            // For our use case, we assume this block is not actively used with args.validations.
+            // If it were, and if it failed, it should return false. If it passed, it would navigate.
           }
         }
+
+        // If beforeNext didn't return false, and if the plugin's internal validation (if used) didn't stop it, then navigate.
+        // For our specific async Yii validation:
+        // - beforeNext will return false.
+        // - The plugin's internal validation is not used.
+        // - So, this line form.navigateTo(curIndex() + 1) will NOT be executed from this handler if beforeNext is used as planned.
+        // If beforeNext is NOT provided, or returns true, this line WILL be executed.
         form.navigateTo(curIndex() + 1);
       });
       form.find('.submit').on('click', function(e){
