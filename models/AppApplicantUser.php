@@ -42,7 +42,7 @@ class AppApplicantUser extends \yii\db\ActiveRecord
     {
         return [
             [['surname', 'other_name', 'email_address', 'country_code', 'mobile_no', 'password', 'activation_code', 'salt', 'status', 'date_registered', 'reg_token', 'profile_image', 'change_pass'], 'default', 'value' => null],
-            [['date_registered'], 'safe'],
+            [['date_registered', 'username'], 'safe'],
             [['first_name'], 'required'],
             [['change_pass'], 'string'],
             [['surname', 'email_address', 'activation_code', 'salt', 'reg_token'], 'string', 'max' => 100],
@@ -77,5 +77,4 @@ class AppApplicantUser extends \yii\db\ActiveRecord
             'change_pass' => 'Change Pass',
         ];
     }
-
 }
