@@ -42,45 +42,47 @@ if ($currentStepIndex === false && !empty($steps)) {
     $currentStepIndex = $currentStep === null ? count($steps) : 0;
 }
 
+// Prepare data for JavaScript
+$this->registerJsFile(Yii::getAlias('@web/js/applicant-wizard-ajax.js'), ['depends' => [\yii\web\JqueryAsset::class, \yii\bootstrap5\BootstrapPluginAsset::class]]);
+
+$jsStepsArray = json_encode(array_values($steps)); // Ensure it's a simple array for JS
+$this->registerJs("
+    $('.app-applicant-user-update-wizard').data('steps-array', {$jsStepsArray});
+    $('.app-applicant-user-update-wizard').data('applicant-user-id', " . json_encode($applicantUserIdForNav) . ");
+    // The initial currentStep is implicitly known by the active tab.
+", \yii\web\View::POS_READY, 'wizard-init-data');
+
 
 foreach ($steps as $index => $stepKey) {
     $isFutureStep = $index > $currentStepIndex;
-    // Disable step if it's a future step AND ( (it's not the first step AND no applicant user ID exists yet) OR it's simply a future step beyond current)
-    // The first step ('personal-details') should always be enabled if no applicant_user_id is present.
     $isDisabled = $isFutureStep;
 
-    // Special condition for the very first step: it should not be disabled by default if no user ID exists.
-    // However, if an applicant_user_id DOES exist, then the normal "future step" logic applies.
-    // This also means if we are on step 0, steps 1, 2, etc. are disabled if no applicant_user_id.
-    // If we are beyond step 0 (meaning applicant_user_id must exist), then only future steps are disabled.
-    if ($index > 0 && !$applicantUserIdForNav && $steps[0] === $stepKey && $currentStepIndex === 0) {
-        // If it's a step after the first, and we don't have an applicant ID yet (meaning first step isn't saved),
-        // and we are currently on the first step, then this subsequent step should be disabled.
-        // This logic is a bit complex due to initial state vs. navigating back.
-        // Simplified: If no applicant ID, only the current step (presumably the first) or past steps are enabled.
-    }
-
-    if (!$applicantUserIdForNav && $index > 0) { // If no applicant_user_id, disable all steps except the first one
+    if (!$applicantUserIdForNav && $index > 0) {
         $isDisabled = true;
     } else {
         $isDisabled = $isFutureStep;
     }
-    // Ensure current step is never marked as disabled, even if logic somehow implies it.
     if ($stepKey === $currentStep) {
         $isDisabled = false;
     }
 
+    $linkOptions = ['data-step' => $stepKey, 'class' => 'nav-link']; // Add data-step for JS
+    if ($isDisabled) {
+        $linkOptions['class'] .= ' disabled-link disabled'; // Keep initial disabled state visual
+        $linkOptions['tabindex'] = "-1";
+        $linkOptions['aria-disabled'] = "true";
+    }
 
     $navItems[] = [
         'label' => $stepTitles[$stepKey] ?? ucfirst(str_replace('-', ' ', $stepKey)),
-        'url' => $isDisabled ? '#' : ['update-wizard', 'currentStep' => $stepKey, 'applicant_user_id' => $applicantUserIdForNav],
+        'url' => 'javascript:void(0);', // AJAX will handle navigation
         'active' => $currentStep === $stepKey,
-        'disabled' => $isDisabled,
-        'linkOptions' => $isDisabled ? ['class' => 'disabled-link', 'tabindex' => "-1", 'aria-disabled' => "true"] : [],
+        'disabled' => $isDisabled, // Still useful for initial state and non-JS, though JS will override
+        'linkOptions' => $linkOptions,
     ];
 }
 ?>
-<div class="app-applicant-user-update-wizard">
+<div class="app-applicant-user-update-wizard" data-applicant-user-id="<?= Html::encode($applicantUserIdForNav) ?>" data-steps-array="<?= Html::encode(json_encode(array_values($steps))) ?>">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -113,33 +115,67 @@ foreach ($steps as $index => $stepKey) {
 
     <?php // Step-specific messages from controller
     if (isset($stepData['message']) && is_scalar($stepData['message'])): ?>
-        <div class="alert alert-danger"><?= Html::encode($stepData['message']) ?></div>
+        <div class="alert alert-danger" id="wizard-server-message"><?= Html::encode($stepData['message']) ?></div>
     <?php endif; ?>
 
+    <div id="wizard-general-error" class="alert alert-danger" style="display:none;"></div>
 
-    <?php // Render the current step's content
-    if ($currentStep && is_string($currentStep) && in_array($currentStep, $steps)) {
-        $stepViewFile = Yii::getAlias('@app/views/applicant-user/' . $currentStep . '.php');
-        if (file_exists($stepViewFile)) {
-            echo $this->render($currentStep, [
-                'model' => $model,
-                'appApplicantModel' => $appApplicantModel,
-                'stepData' => $stepData,
-            ]);
-        } else {
-            echo '<div class="alert alert-warning">Step view not found: ' . Html::encode($currentStep) . '</div>';
+    <div id="wizard-step-content">
+        <?php // Render the initial step's content
+        if ($currentStep && is_string($currentStep) && in_array($currentStep, $steps)) {
+            $stepViewFile = Yii::getAlias('@app/views/applicant-user/' . $currentStep . '.php');
+            if (file_exists($stepViewFile)) {
+                // Pass currentStepForView to the partial, so it knows which step it is
+                // This is useful if a single partial view file is used for multiple similar steps.
+                echo $this->render($currentStep, [
+                    'model' => $model,
+                    'appApplicantModel' => $appApplicantModel,
+                    'stepData' => $stepData,
+                    'currentStepForView' => $currentStep // Pass the actual current step key
+                ]);
+            } else {
+                echo '<div class="alert alert-warning">Step view not found: ' . Html::encode($currentStep) . '</div>';
+            }
+        } elseif (!$currentStep && Yii::$app->session->hasFlash('success')) {
+            // Wizard completed successfully (non-AJAX redirect path or initial load after completion)
+            if ($applicantUserIdForNav) {
+                 echo Html::a('View Applicant Details', ['view', 'applicant_user_id' => $applicantUserIdForNav], ['class' => 'btn btn-primary']);
+                 echo ' ';
+            }
+            echo Html::a('Back to List', ['index'], ['class' => 'btn btn-secondary']);
+        } elseif (!$currentStep && !Yii::$app->session->hasFlash('success')) {
+            // Wizard cancelled or in an undefined state
+            echo '<div class="alert alert-info">The wizard process has been cancelled or is in an undefined state.</div>';
+            echo Html::a('Back to List', ['index'], ['class' => 'btn btn-secondary']);
         }
-    } elseif (!$currentStep && Yii::$app->session->hasFlash('success')) {
-        // Wizard completed successfully
-        if ($applicantUserIdForNav) {
-             echo Html::a('View Applicant Details', ['view', 'applicant_user_id' => $applicantUserIdForNav], ['class' => 'btn btn-primary']);
-             echo ' ';
-        }
-        echo Html::a('Back to List', ['index'], ['class' => 'btn btn-secondary']);
-    } elseif (!$currentStep && !Yii::$app->session->hasFlash('success')) {
-        // Wizard cancelled or in an undefined state
-        echo '<div class="alert alert-info">The wizard process has been cancelled or is in an undefined state.</div>';
-        echo Html::a('Back to List', ['index'], ['class' => 'btn btn-secondary']);
-    }
-    ?>
+        ?>
+    </div>
+
+    <div class="mt-3">
+        <?php
+        $currentStepIdx = array_search($currentStep, $steps);
+        $isFirstStep = $currentStepIdx === 0;
+        $isLastStep = $currentStepIdx === (count($steps) - 1);
+
+        echo Html::button('Previous', [
+            'class' => 'btn btn-secondary me-2',
+            'id' => 'wizard-previous-btn',
+            'style' => $isFirstStep ? 'display:none;' : ''
+        ]);
+        echo Html::button('Next', [
+            'class' => 'btn btn-primary me-2',
+            'id' => 'wizard-next-btn',
+            'style' => $isLastStep ? 'display:none;' : ''
+        ]);
+        // The 'Save' button might be specific to the last step, or a general 'Save Draft'
+        // For now, let's assume it's for the final save on the last step.
+        echo Html::button('Save', [
+            'class' => 'btn btn-success',
+            'id' => 'wizard-save-btn',
+            'style' => !$isLastStep ? 'display:none;' : ''
+        ]);
+        // Cancel button could be a simple link
+        // echo Html::a('Cancel', ['index'], ['class' => 'btn btn-warning ms-2', 'name' => 'wizard_cancel']);
+        ?>
+    </div>
 </div>

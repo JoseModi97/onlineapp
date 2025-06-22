@@ -33,10 +33,9 @@ use yii\widgets\ActiveForm;
     ?>
 
 
-    <div class="form-group">
-        <?= Html::submitButton('<i class="fas fa-arrow-left"></i> Previous', ['class' => 'btn btn-info', 'name' => 'wizard_previous', 'formnovalidate' => true]) ?>
-        <?= Html::submitButton('<i class="fas fa-save"></i> Save Application', ['class' => 'btn btn-success', 'name' => 'wizard_save']) ?>
-        <?= Html::submitButton('<i class="fas fa-times"></i> Cancel', ['class' => 'btn btn-secondary', 'name' => 'wizard_cancel', 'formnovalidate' => true]) ?>
+    <?php // Navigation buttons are now handled by the main update-wizard.php view and AJAX JS ?>
+    <div class="form-group visually-hidden">
+        <?= Html::submitButton('Submit', ['style' => 'display:none;']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

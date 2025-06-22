@@ -21,9 +21,13 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'email_address')->textInput(['maxlength' => true]) ?>
     <?= $form->field($model, 'mobile_no')->textInput(['maxlength' => true]) ?>
 
-    <div class="form-group">
-        <?= Html::submitButton('Next <i class="fas fa-arrow-right"></i>', ['class' => 'btn btn-primary', 'name' => 'wizard_next']) ?>
-        <?= Html::submitButton('<i class="fas fa-times"></i> Cancel', ['class' => 'btn btn-secondary', 'name' => 'wizard_cancel', 'formnovalidate' => true]) ?>
+    <?php // Navigation buttons are now handled by the main update-wizard.php view and AJAX JS ?>
+    <?php // Ensuring form group for spacing if any other elements were to be added later.
+        // If no other elements, this div could also be removed.
+    ?>
+    <div class="form-group visually-hidden">
+        <?php /* Dummy button to ensure form tag is not empty if no other buttons/elements are present, not strictly necessary with fields above */ ?>
+        <?= Html::submitButton('Submit', ['style' => 'display:none;']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>
