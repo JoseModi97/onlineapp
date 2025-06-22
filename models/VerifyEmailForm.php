@@ -55,6 +55,12 @@ class VerifyEmailForm extends Model
             $appApplicantUser->username = $user->username; // Use the new username field
             $appApplicantUser->email_address = $user->email; // Populate email address
             // first_name is no longer required and will not be set here.
+            $appApplicant = new AppApplicant();
+            if ($appApplicantUser->save()) {
+                $appApplicant->applicant_user_id = $appApplicantUser->applicant_user_id;
+                $appApplicant->applicant_user_id = $appApplicantUser->applicant_user_id;
+                $appApplicant->save();
+            }
             if (!$appApplicantUser->save()) {
                 // Handle error if AppApplicantUser fails to save
                 // For now, we can log this or add a flash message

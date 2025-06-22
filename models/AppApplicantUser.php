@@ -27,6 +27,12 @@ use Yii;
 class AppApplicantUser extends \yii\db\ActiveRecord
 {
 
+    public $gender;
+    public $dob;
+    public $country_code;
+    public $national_id;
+    public $marital_status;
+
 
     /**
      * {@inheritdoc}
@@ -43,7 +49,7 @@ class AppApplicantUser extends \yii\db\ActiveRecord
     {
         return [
             [['surname', 'other_name', 'email_address', 'country_code', 'mobile_no', 'password', 'activation_code', 'salt', 'status', 'date_registered', 'reg_token', 'profile_image', 'change_pass', 'username', 'first_name'], 'default', 'value' => null],
-            [['date_registered'], 'safe'],
+            [['date_registered', 'gender', 'dob', 'country_code', 'national_id', 'marital_status'], 'safe'],
             // [['first_name'], 'required'], // Username will be set from User model, so not required here initially. Made optional as per user request.
             [['change_pass'], 'string'],
             [['surname', 'email_address', 'activation_code', 'salt', 'reg_token'], 'string', 'max' => 100],
@@ -52,7 +58,8 @@ class AppApplicantUser extends \yii\db\ActiveRecord
             [['mobile_no', 'status'], 'string', 'max' => 30],
             [['password'], 'string', 'max' => 200],
             [['profile_image', 'first_name', 'username'], 'string', 'max' => 255],
-            [['username'], 'unique'], // Assuming username should be unique
+            [['username'], 'unique'],
+            [['applicant_user_id'], 'exist', 'skipOnError' => true, 'targetClass' => AppApplicant::class, 'targetAttribute' => ['applicant_user_id' => 'applicant_user_id']],
         ];
     }
 
@@ -79,5 +86,15 @@ class AppApplicantUser extends \yii\db\ActiveRecord
             'change_pass' => 'Change Pass',
             'username' => 'Username',
         ];
+    }
+
+    /**
+     * Gets query for [[ApplicationFee]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getAppApplicant()
+    {
+        return $this->hasOne(AppApplicant::class, ['applicant_user_id' => 'applicant_user_id']);
     }
 }
