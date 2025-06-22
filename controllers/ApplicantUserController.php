@@ -9,6 +9,7 @@ use yii\filters\VerbFilter;
 use app\components\AccessControlBehavior;
 use app\models\search\AppApplicantUserSearch;
 use yii\web\NotFoundHttpException;
+use app\models\AppApplicant;
 
 class ApplicantUserController extends Controller
 {
@@ -76,8 +77,6 @@ class ApplicantUserController extends Controller
      * @return string|\yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
-use app\models\AppApplicant;
-
     public function actionUpdateWizard($applicant_user_id)
     {
         $model = $this->findModel($applicant_user_id);
