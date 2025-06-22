@@ -3,6 +3,7 @@
 namespace app\models;
 
 use app\models\User;
+use app\models\AppApplicantUser;
 use yii\base\InvalidArgumentException;
 use yii\base\Model;
 
@@ -47,6 +48,24 @@ class VerifyEmailForm extends Model
     {
         $user = $this->_user;
         $user->status = User::STATUS_ACTIVE;
-        return $user->save(false) ? $user : null;
+
+        if ($user->save(false)) {
+            // Create a new AppApplicantUser record
+            $appApplicantUser = new AppApplicantUser();
+            $appApplicantUser->username = $user->username; // Use the new username field
+            $appApplicantUser->email_address = $user->email; // Populate email address
+            // first_name is no longer required and will not be set here.
+            if (!$appApplicantUser->save()) {
+                // Handle error if AppApplicantUser fails to save
+                // For now, we can log this or add a flash message
+                // Depending on how critical this step is, you might also want to
+                // roll back the user status change or notify an admin.
+                \Yii::error("Failed to save AppApplicantUser: " . print_r($appApplicantUser->getErrors(), true));
+                // Optionally, you could decide not to return the user if this part fails
+                // return null;
+            }
+            return $user;
+        }
+        return null;
     }
 }
