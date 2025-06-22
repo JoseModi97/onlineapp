@@ -105,12 +105,14 @@ $(document).ready(function() {
                     input.closest('.mb-3, .form-group').append('<div class="invalid-feedback">' + errorMsg + '</div>');
                 });
                  if (response.message) {
-                    $('#wizard-general-error').text(response.message).show();
+                    $('#wizard-general-error').text("Input Error: " + response.message).show();
+                } else {
+                    $('#wizard-general-error').text("Input Error: Please correct the highlighted fields below.").show();
                 }
-            } else if (response.message) {
-                $('#wizard-general-error').text(response.message).show();
-            } else {
-                $('#wizard-general-error').text('An unexpected error occurred. Please try again.').show();
+            } else if (response.message) { // Server error with a specific message
+                $('#wizard-general-error').text("Update Failed: " + response.message).show();
+            } else { // Fallback for other success=false cases without specific errors or message
+                $('#wizard-general-error').text('Request Failed: An unknown error occurred. Please try again.').show();
             }
              if (response.redirectToStep) {
                 // Force navigation to a specific step, e.g., if user tries to access invalid step
@@ -150,8 +152,9 @@ $(document).ready(function() {
                 handleAjaxResponse(response, targetStepKey);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                $('#wizard-general-error').text('A critical error occurred: ' + errorThrown + '. Please try again or contact support.').show();
-                console.error("AJAX Error:", textStatus, errorThrown, jqXHR.responseText);
+                // More direct message for critical AJAX failures
+                $('#wizard-general-error').text('System Error: Could not complete your request due to a technical issue. Please try again. If the problem continues, contact support.').show();
+                console.error("AJAX Error:", textStatus, errorThrown, jqXHR.responseText); // Keep detailed log for developers
             },
             complete: function() {
                 // TODO: Hide loader
