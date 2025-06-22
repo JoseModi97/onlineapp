@@ -15,7 +15,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'username')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'password')->passwordInput(['maxlength' => true, 'autocomplete' => 'new-password', 'placeholder' => ($model->isNewRecord ? '' : 'Leave blank if not changing')]) ?>
+    <?php $form->field($model, 'password')->passwordInput(['maxlength' => true, 'autocomplete' => 'new-password', 'placeholder' => ($model->isNewRecord ? '' : 'Leave blank if not changing')]) ?>
 
     <?php
     // The 'change_pass' field in the original model was a hidden input then a checkbox.
@@ -24,11 +24,13 @@ use yii\widgets\ActiveForm;
     // but for updates, it indicates intent.
     // The model's SCENARIO_STEP_ACCOUNT_SETTINGS should handle validation based on this.
     ?>
-    <?= $form->field($model, 'change_pass')->checkbox(['label' => 'Set/Change Password']) ?>
+    <?php $form->field($model, 'change_pass')->checkbox(['label' => 'Set/Change Password']) ?>
 
 
-    <?= $form->field($model, 'profile_image')->textInput(['maxlength' => true]) // Consider using a file input widget here ?>
-    <?php // Example: $form->field($model, 'profileImageFile')->fileInput() if using a file upload approach ?>
+    <?= $form->field($model, 'profile_image')->textInput(['maxlength' => true]) // Consider using a file input widget here 
+    ?>
+    <?php // Example: $form->field($model, 'profileImageFile')->fileInput() if using a file upload approach 
+    ?>
 
 
     <div class="form-group">

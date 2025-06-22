@@ -14,12 +14,19 @@ use yii\jui\DatePicker;
         'id' => 'applicant-specifics-form',
     ]); ?>
 
-    <?= $form->errorSummary($appApplicantModel); // Added error summary ?>
+    <?= $form->errorSummary($appApplicantModel); // Added error summary 
+    ?>
 
     <?= $form->field($appApplicantModel, 'gender')->dropDownList(['Male' => 'Male', 'Female' => 'Female'], ['prompt' => 'Select Gender']) ?>
     <?= $form->field($appApplicantModel, 'dob')->widget(DatePicker::class, [
         'options' => ['class' => 'form-control'],
-        'clientOptions' => ['dateFormat' => 'yy-mm-dd', 'changeYear' => true, 'changeMonth' => true, 'yearRange' => '-100:+0'],
+        'dateFormat' => 'yyyy-MM-dd', // server-side format (for DB compatibility)
+        'clientOptions' => [
+            'dateFormat' => 'yy-mm-dd', // client-side JS format
+            'changeYear' => true,
+            'changeMonth' => true,
+            'yearRange' => '-100:+0',
+        ],
     ]) ?>
     <?= $form->field($appApplicantModel, 'religion')->textInput(['maxlength' => true]) ?>
     <?= $form->field($appApplicantModel, 'country_code')->textInput(['maxlength' => true]) ?>
