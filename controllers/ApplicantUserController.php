@@ -10,9 +10,34 @@ use app\components\AccessControlBehavior;
 use app\models\search\AppApplicantUserSearch;
 use yii\web\NotFoundHttpException;
 use app\models\AppApplicant;
+use beastbytes\wizard\WizardBehavior;
+use yii\helpers\ArrayHelper;
 
 class ApplicantUserController extends Controller
 {
+    public function actions()
+    {
+        return [
+            'update-wizard' => [
+                'class' => 'beastbytes\wizard\WizardAction',
+                'steps' => ['personal-details', 'applicant-specifics', 'account-settings'],
+                'events' => [
+                    WizardBehavior::EVENT_WIZARD_STEP => [$this, 'wizardStep'],
+                    WizardBehavior::EVENT_AFTER_WIZARD => [$this, 'afterWizard'],
+                ],
+                'redirectUrl' => function ($wizard) {
+                    // Ensure applicant_user_id is read from session, as it's stored there
+                    $applicantUserId = $wizard->readFromSession('applicant_user_id');
+                    if ($applicantUserId) {
+                        return ['view', 'applicant_user_id' => $applicantUserId];
+                    }
+                    // Fallback or error handling if ID is not found, though afterWizard should ensure it
+                    return ['index']; // Or some other appropriate default
+                }
+            ],
+        ];
+    }
+
     /**
      * @inheritDoc
      */
@@ -77,60 +102,136 @@ class ApplicantUserController extends Controller
      * @return string|\yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionUpdateWizard($applicant_user_id)
+    public function wizardStep($event)
     {
-        $model = $this->findModel($applicant_user_id);
-        $appApplicantModel = $model->getAppApplicant()->one();
-
-        if (!$appApplicantModel) {
-            $appApplicantModel = new AppApplicant();
-            $appApplicantModel->applicant_user_id = $model->applicant_user_id;
+        $applicant_user_id = Yii::$app->request->get('applicant_user_id');
+        if (empty($applicant_user_id) && $event->step !== 'personal-details') {
+             // if applicant_user_id is not set and not on the first step, redirect to the first step or an error page
+            $event->data = ['message' => 'Applicant User ID is missing.'];
+            $event->action->resetWizard();
+            $event->action->redirect = ['update-wizard', 'step' => 'personal-details'];
+            $event->handled = true;
+            return;
         }
 
-        if ($this->request->isPost) {
-            $modelLoaded = $model->load($this->request->post());
-            $appApplicantModelLoaded = $appApplicantModel->load($this->request->post());
+        $model = $applicant_user_id ? $this->findModel($applicant_user_id) : new AppApplicantUser();
+        $appApplicantModel = $model->isNewRecord ? new AppApplicant() : ($model->getAppApplicant()->one() ?? new AppApplicant());
 
-            if ($modelLoaded && $appApplicantModelLoaded) {
-                $validUser = $model->validate();
-                $validApplicant = $appApplicantModel->validate();
+        if ($model->isNewRecord && $event->step !== 'personal-details') {
+            // If it's a new record and not the first step, something is wrong.
+            // Potentially redirect to the first step or show an error.
+            // This might happen if the user tries to access a later step directly via URL for a new record.
+            $event->data = ['message' => 'Please complete the first step.'];
+            $event->action->resetWizard();
+            $event->action->redirect = ['update-wizard', 'step' => 'personal-details'];
+            $event->handled = true;
+            return;
+        }
 
-                if ($validUser && $validApplicant) {
-                    $transaction = Yii::$app->db->beginTransaction();
-                    try {
+        $event->data = [
+            'model' => $model,
+            'appApplicantModel' => $appApplicantModel,
+        ];
+
+        if (Yii::$app->request->isPost) {
+            $isModelLoaded = false;
+            $isAppApplicantModelLoaded = false;
+
+            if ($event->step === 'personal-details' || $event->step === 'account-settings') {
+                $isModelLoaded = $model->load(Yii::$app->request->post());
+            }
+            if ($event->step === 'applicant-specifics') {
+                $isAppApplicantModelLoaded = $appApplicantModel->load(Yii::$app->request->post());
+            }
+
+            if ($isModelLoaded || $isAppApplicantModelLoaded) {
+                $isValid = true;
+                if ($event->step === 'personal-details') {
+                    $isValid = $model->validate(AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS);
+                     if ($isValid && $model->isNewRecord) { // Save after first step if new
                         if ($model->save(false)) {
-                            $appApplicantModel->applicant_user_id = $model->applicant_user_id; // Ensure it's set
-                            if ($appApplicantModel->save(false)) {
-                                $transaction->commit();
-                                Yii::$app->session->setFlash('success', 'Applicant details updated successfully.');
-                                return $this->redirect(['view', 'applicant_user_id' => $model->applicant_user_id]);
-                            }
+                            $event->action->saveToSession('applicant_user_id', $model->applicant_user_id);
+                        } else {
+                            $isValid = false;
                         }
-                        $transaction->rollBack();
-                        Yii::$app->session->setFlash('error', 'Error saving applicant details.');
-                    } catch (\Exception $e) {
-                        $transaction->rollBack();
-                        Yii::$app->session->setFlash('error', 'An error occurred: ' . $e->getMessage());
+                    } elseif ($isValid && !$model->isNewRecord) { // Update if existing
+                        $model->save(false);
                     }
+                } elseif ($event->step === 'applicant-specifics') {
+                    $appApplicantModel->applicant_user_id = $event->action->readFromSession('applicant_user_id');
+                    $isValid = $appApplicantModel->validate();
+                } elseif ($event->step === 'account-settings') {
+                    $isValid = $model->validate(AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS);
+                }
+
+                if ($isValid) {
+                    $event->action->saveToSession('modelAttributes', $model->getAttributes());
+                    if ($appApplicantModel) {
+                        $event->action->saveToSession('appApplicantModelAttributes', $appApplicantModel->getAttributes());
+                    }
+                    $event->handled = true; // Proceed to next step
                 } else {
-                    // Combine errors for a more descriptive flash message
-                    $errorMessages = [];
-                    foreach ($model->getErrors() as $attribute => $errors) {
-                        $errorMessages[] = $model->getAttributeLabel($attribute) . ': ' . implode(', ', $errors);
-                    }
-                    foreach ($appApplicantModel->getErrors() as $attribute => $errors) {
-                        $errorMessages[] = $appApplicantModel->getAttributeLabel($attribute) . ': ' . implode(', ', $errors);
-                    }
-                    $flashMessage = 'Validation failed. Please check the following: <br/>' . implode('<br/>', $errorMessages);
-                    Yii::$app->session->setFlash('error', $flashMessage);
+                    // Validation failed, stay on current step and display errors
+                    $event->data['message'] = 'Please correct the errors below.';
+                    $event->action->stay(); // This will re-render the current step's view
                 }
             }
         }
+    }
 
-        return $this->render('update-wizard', [
-            'model' => $model,
-            'appApplicantModel' => $appApplicantModel,
-        ]);
+    public function afterWizard($event)
+    {
+        $modelAttributes = $event->action->readFromSession('modelAttributes', []);
+        $appApplicantModelAttributes = $event->action->readFromSession('appApplicantModelAttributes', []);
+        $applicant_user_id = $event->action->readFromSession('applicant_user_id');
+
+        if (!$applicant_user_id) {
+            Yii::$app->session->setFlash('error', 'Applicant user ID not found in session. Cannot save.');
+            $event->action->redirect = ['update-wizard', 'step' => $event->action->steps[0]]; // Redirect to first step
+            return;
+        }
+
+        $model = $this->findModel($applicant_user_id);
+        if (!$model) { // Should not happen if findModel throws exception for not found
+            $model = new AppApplicantUser();
+            // If we were creating a new user and saving ID only after first step,
+            // this logic would need to handle new AppApplicantUser() creation carefully.
+            // However, current logic saves new AppApplicantUser in the first step if it's new.
+        } else {
+            $model = new AppApplicantUser();
+        }
+
+        $model->setAttributes($modelAttributes);
+
+        $appApplicantModel = $model->isNewRecord ? new AppApplicant() : ($model->getAppApplicant()->one() ?? new AppApplicant());
+        if ($appApplicantModelAttributes) {
+            $appApplicantModel->setAttributes($appApplicantModelAttributes);
+        }
+
+        // Final save operation
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            if ($model->save()) {
+                $appApplicantModel->applicant_user_id = $model->applicant_user_id;
+                if ($appApplicantModel->save()) {
+                    $transaction->commit();
+                    Yii::$app->session->setFlash('success', 'Applicant details saved successfully.');
+                    $event->action->redirect = ['view', 'applicant_user_id' => $model->applicant_user_id];
+                } else {
+                    $transaction->rollBack();
+                    Yii::$app->session->setFlash('error', 'Error saving applicant specifics: ' . print_r($appApplicantModel->getErrors(), true));
+                    $event->action->redirect = ['update-wizard', 'applicant_user_id' => $model->applicant_user_id, 'step' => $event->action->steps[count($event->action->steps)-1]]; // Redirect to last step
+                }
+            } else {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'Error saving applicant user details: ' . print_r($model->getErrors(), true));
+                $event->action->redirect = ['update-wizard', 'applicant_user_id' => $model->applicant_user_id, 'step' => $event->action->steps[0]]; // Redirect to first step
+            }
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            Yii::$app->session->setFlash('error', 'An error occurred: ' . $e->getMessage());
+            $event->action->redirect = ['update-wizard', 'applicant_user_id' => $model->applicant_user_id, 'step' => $event->action->steps[0]];
+        }
     }
 
     public function actionUserList($q = null)

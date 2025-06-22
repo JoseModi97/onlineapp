@@ -26,12 +26,27 @@ use Yii;
  */
 class AppApplicantUser extends \yii\db\ActiveRecord
 {
+    const SCENARIO_DEFAULT = 'default';
+    // Define scenario for personal details step
+    const SCENARIO_STEP_PERSONAL_DETAILS = 'step_personal_details';
+    // Define scenario for account settings step
+    const SCENARIO_STEP_ACCOUNT_SETTINGS = 'step_account_settings';
+
+
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
         return 'onlineapp.app_applicant_user';
+    }
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_STEP_PERSONAL_DETAILS] = ['surname', 'first_name', 'other_name', 'email_address', 'mobile_no'];
+        $scenarios[self::SCENARIO_STEP_ACCOUNT_SETTINGS] = ['username', 'password', 'profile_image', 'change_pass'];
+        return $scenarios;
     }
 
     /**
@@ -52,6 +67,16 @@ class AppApplicantUser extends \yii\db\ActiveRecord
             [['profile_image', 'first_name', 'username'], 'string', 'max' => 255],
             [['username'], 'unique'],
             [['applicant_user_id'], 'exist', 'skipOnError' => true, 'targetClass' => AppApplicant::class, 'targetAttribute' => ['applicant_user_id' => 'applicant_user_id']],
+
+            // Scenario specific rules
+            [['surname', 'first_name', 'email_address', 'mobile_no'], 'required', 'on' => self::SCENARIO_STEP_PERSONAL_DETAILS],
+            [['username'], 'required', 'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS],
+            // Password required only if it's a new record or if change_pass is checked
+            ['password', 'required', 'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS, 'when' => function ($model) {
+                return $model->isNewRecord || $model->change_pass;
+            }, 'whenClient' => "function (attribute, value) {
+                return $('#appapplicantuser-change_pass').is(':checked') || " . ($this->isNewRecord ? 'true' : 'false') . ";
+            }"],
         ];
     }
 

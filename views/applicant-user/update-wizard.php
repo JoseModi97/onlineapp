@@ -1,23 +1,28 @@
 <?php
 
 use yii\helpers\Html;
+use beastbytes\wizard\WizardMenu;
 
 /** @var yii\web\View $this */
-/** @var app\models\AppApplicantUser $model */
-/** @var app\models\AppApplicant $appApplicantModel */
+/** @var beastbytes\wizard\WizardEvent $event */
 
-$this->title = 'Update App Applicant User: ' . $model->applicant_user_id;
+$this->title = 'Update Applicant Wizard';
 $this->params['breadcrumbs'][] = ['label' => 'App Applicant Users', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->applicant_user_id, 'url' => ['view', 'applicant_user_id' => $model->applicant_user_id]];
-$this->params['breadcrumbs'][] = 'Update';
+if ($event->data['model'] && !$event->data['model']->isNewRecord) {
+    $this->params['breadcrumbs'][] = ['label' => $event->data['model']->applicant_user_id, 'url' => ['view', 'applicant_user_id' => $event->data['model']->applicant_user_id]];
+}
+$this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="app-applicant-user-update">
+<div class="app-applicant-user-update-wizard">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form_wizard', [
-        'model' => $model,
-        'appApplicantModel' => $appApplicantModel,
-    ]) ?>
+    <?= WizardMenu::widget(['step' => $event->step, 'wizard' => $event->sender]) ?>
+
+    <?php if (isset($event->data['message'])): ?>
+        <div class="alert alert-danger"><?= Html::encode($event->data['message']) ?></div>
+    <?php endif; ?>
+
+    <?= $this->render($event->step, ['event' => $event]) ?>
 
 </div>
