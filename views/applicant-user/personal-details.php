@@ -3,16 +3,20 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
+<?php
+// Ensure this view receives $model directly, not via $event
+?>
 /** @var yii\web\View $this */
-/** @var beastbytes\wizard\WizardEvent $event */
 /** @var app\models\AppApplicantUser $model */
-
-$model = $event->data['model'];
+/** @var yii\widgets\ActiveForm $form */
 ?>
 
 <div class="personal-details-form">
 
-    <?php $form = ActiveForm::begin(); ?>
+    <?php $form = ActiveForm::begin([
+        'id' => 'personal-details-form',
+        // Action will be handled by the main update-wizard URL, parameters define step
+    ]); ?>
 
     <?= $form->field($model, 'surname')->textInput(['maxlength' => true]) ?>
     <?= $form->field($model, 'first_name')->textInput(['maxlength' => true]) ?>
@@ -21,9 +25,8 @@ $model = $event->data['model'];
     <?= $form->field($model, 'mobile_no')->textInput(['maxlength' => true]) ?>
 
     <div class="form-group">
-        <?= Html::submitButton('Next', ['class' => 'btn btn-primary', 'name' => 'wizard_next']) ?>
-        <?= Html::submitButton('Cancel', ['class' => 'btn btn-default', 'name' => 'wizard_cancel']) ?>
-        <?php // The 'cancel' button might need special handling in controller or behavior to trigger EVENT_CANCEL ?>
+        <?= Html::submitButton('Next <i class="fas fa-arrow-right"></i>', ['class' => 'btn btn-primary', 'name' => 'wizard_next']) ?>
+        <?= Html::submitButton('<i class="fas fa-times"></i> Cancel', ['class' => 'btn btn-secondary', 'name' => 'wizard_cancel', 'formnovalidate' => true]) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

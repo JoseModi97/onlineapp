@@ -4,25 +4,30 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\jui\DatePicker;
 
+<?php
+// Ensure this view receives $appApplicantModel directly
+?>
 /** @var yii\web\View $this */
-/** @var beastbytes\wizard\WizardEvent $event */
 /** @var app\models\AppApplicant $appApplicantModel */
-
-$appApplicantModel = $event->data['appApplicantModel'];
+/** @var yii\widgets\ActiveForm $form */
 ?>
 
 <div class="applicant-specifics-form">
 
-    <?php $form = ActiveForm::begin(); ?>
+    <?php $form = ActiveForm::begin([
+        'id' => 'applicant-specifics-form',
+    ]); ?>
 
     <?= $form->field($appApplicantModel, 'gender')->dropDownList(['Male' => 'Male', 'Female' => 'Female'], ['prompt' => 'Select Gender']) ?>
     <?= $form->field($appApplicantModel, 'dob')->widget(DatePicker::class, [
         'options' => ['class' => 'form-control'],
-        'dateFormat' => 'php:Y-m-d',
+        'clientOptions' => ['dateFormat' => 'yy-mm-dd', 'changeYear' => true, 'changeMonth' => true, 'yearRange' => '-100:+0'],
     ]) ?>
     <?= $form->field($appApplicantModel, 'religion')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($appApplicantModel, 'country_code')->textInput(['type' => 'number']) ?>
-    <?= $form->field($appApplicantModel, 'national_id')->textInput(['type' => 'number']) ?>
+    <?= $form->field($appApplicantModel, 'country_code')->textInput(['maxlength' => true]) // Was number, but country codes can have + or be non-numeric in some contexts
+    ?>
+    <?= $form->field($appApplicantModel, 'national_id')->textInput(['maxlength' => true]) // Was number
+    ?>
     <?= $form->field($appApplicantModel, 'marital_status')->dropDownList([
         'Single' => 'Single',
         'Married' => 'Married',
@@ -31,9 +36,9 @@ $appApplicantModel = $event->data['appApplicantModel'];
     ], ['prompt' => 'Select Marital Status']) ?>
 
     <div class="form-group">
-        <?= Html::submitButton('Previous', ['class' => 'btn btn-default', 'name' => 'wizard_previous']) ?>
-        <?= Html::submitButton('Next', ['class' => 'btn btn-primary', 'name' => 'wizard_next']) ?>
-        <?= Html::submitButton('Cancel', ['class' => 'btn btn-default', 'name' => 'wizard_cancel']) ?>
+        <?= Html::submitButton('<i class="fas fa-arrow-left"></i> Previous', ['class' => 'btn btn-info', 'name' => 'wizard_previous', 'formnovalidate' => true]) ?>
+        <?= Html::submitButton('Next <i class="fas fa-arrow-right"></i>', ['class' => 'btn btn-primary', 'name' => 'wizard_next']) ?>
+        <?= Html::submitButton('<i class="fas fa-times"></i> Cancel', ['class' => 'btn btn-secondary', 'name' => 'wizard_cancel', 'formnovalidate' => true]) ?>
     </div>
 
     <?php ActiveForm::end(); ?>
