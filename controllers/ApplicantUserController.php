@@ -42,9 +42,7 @@ class ApplicantUserController extends Controller
                         // TODO: Consider adding handlers for EVENT_INVALID_STEP if needed
                     ],
                     'sessionKey' => 'applicantUserWizard', // Optional: custom session key
-                    // redirectUrl will be handled by afterWizard event handler on success
-                    // It can be a fallback if afterWizard does not set $event->continue = false
-                    'redirectUrl' => ['applicant-user/index'],
+                    // Final redirection is handled by the afterWizard event handler.
                 ]
             ]
         );
