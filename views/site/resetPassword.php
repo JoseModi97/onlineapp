@@ -47,16 +47,6 @@ $this->title = 'Reset Your Password';
                                     ],
                                 ])->passwordInput(['autofocus' => true]) ?>
 
-                                <!-- If you want to add a confirmation field, you would add it here -->
-                                <!-- For example:
-                                <?= $form->field($model, 'password_repeat', [
-                                    'inputOptions' => [
-                                        'class' => 'form-control form-control-user',
-                                        'placeholder' => 'Confirm New Password'
-                                    ],
-                                ])->passwordInput() ?>
-                                -->
-
                                 <div class="form-group mt-4">
                                     <?= Html::submitButton('Reset Password', ['class' => 'btn btn-primary btn-user btn-block', 'name' => 'reset-button']) ?>
                                 </div>
