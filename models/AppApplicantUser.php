@@ -22,6 +22,7 @@ use Yii;
  * @property string|null $profile_image
  * @property string $first_name
  * @property string|null $change_pass
+ * @property string|null $username
  */
 class AppApplicantUser extends \yii\db\ActiveRecord
 {
@@ -41,16 +42,17 @@ class AppApplicantUser extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['surname', 'other_name', 'email_address', 'country_code', 'mobile_no', 'password', 'activation_code', 'salt', 'status', 'date_registered', 'reg_token', 'profile_image', 'change_pass'], 'default', 'value' => null],
+            [['surname', 'other_name', 'email_address', 'country_code', 'mobile_no', 'password', 'activation_code', 'salt', 'status', 'date_registered', 'reg_token', 'profile_image', 'change_pass', 'username', 'first_name'], 'default', 'value' => null],
             [['date_registered'], 'safe'],
-            [['first_name'], 'required'],
+            // [['first_name'], 'required'], // Username will be set from User model, so not required here initially. Made optional as per user request.
             [['change_pass'], 'string'],
             [['surname', 'email_address', 'activation_code', 'salt', 'reg_token'], 'string', 'max' => 100],
             [['other_name'], 'string', 'max' => 150],
             [['country_code'], 'string', 'max' => 15],
             [['mobile_no', 'status'], 'string', 'max' => 30],
             [['password'], 'string', 'max' => 200],
-            [['profile_image', 'first_name'], 'string', 'max' => 255],
+            [['profile_image', 'first_name', 'username'], 'string', 'max' => 255],
+            [['username'], 'unique'], // Assuming username should be unique
         ];
     }
 
@@ -75,6 +77,7 @@ class AppApplicantUser extends \yii\db\ActiveRecord
             'profile_image' => 'Profile Image',
             'first_name' => 'First Name',
             'change_pass' => 'Change Pass',
+            'username' => 'Username',
         ];
     }
 
