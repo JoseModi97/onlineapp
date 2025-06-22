@@ -23,7 +23,7 @@ $this->title = 'Reset Your Password';
                 <div class="card-body p-0">
                     <!-- Nested Row within Card Body -->
                     <div class="row">
-                        <div class="col-lg-6 d-none d-lg-block bg-password-image" style="background: url('<?= Url::to('@web/auth_bundle/img/password-image.jpg') ?>'); background-position: center; background-size: cover;"></div>
+                        <div class="col-lg-6 d-none d-lg-block bg-password-image" style="background: url('<?= Url::to('@web/img/reset-pw-page.svg') ?>'); background-position: center; background-size: cover;"></div>
                         <div class="col-lg-6">
                             <div class="p-5">
                                 <div class="text-center">
