@@ -31,9 +31,9 @@ $appApplicantModel = $event->data['appApplicantModel'];
     ], ['prompt' => 'Select Marital Status']) ?>
 
     <div class="form-group">
-        <?= Html::submitButton('Previous', ['class' => 'btn btn-default', 'name' => $event->action->buttonName(beastbytes\wizard\WizardBehavior::BUTTON_PREVIOUS)]) ?>
-        <?= Html::submitButton('Next', ['class' => 'btn btn-primary', 'name' => $event->action->buttonName(beastbytes\wizard\WizardBehavior::BUTTON_NEXT)]) ?>
-        <?= Html::submitButton('Cancel', ['class' => 'btn btn-default', 'name' => $event->action->buttonName(beastbytes\wizard\WizardBehavior::BUTTON_CANCEL)]) ?>
+        <?= Html::submitButton('Previous', ['class' => 'btn btn-default', 'name' => 'wizard_previous']) ?>
+        <?= Html::submitButton('Next', ['class' => 'btn btn-primary', 'name' => 'wizard_next']) ?>
+        <?= Html::submitButton('Cancel', ['class' => 'btn btn-default', 'name' => 'wizard_cancel']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

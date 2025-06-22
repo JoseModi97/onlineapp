@@ -21,9 +21,9 @@ $model = $event->data['model'];
 
 
     <div class="form-group">
-        <?= Html::submitButton('Previous', ['class' => 'btn btn-default', 'name' => $event->action->buttonName(beastbytes\wizard\WizardBehavior::BUTTON_PREVIOUS)]) ?>
-        <?= Html::submitButton('Save', ['class' => 'btn btn-success', 'name' => $event->action->buttonName(beastbytes\wizard\WizardBehavior::BUTTON_SAVE)]) ?>
-        <?= Html::submitButton('Cancel', ['class' => 'btn btn-default', 'name' => $event->action->buttonName(beastbytes\wizard\WizardBehavior::BUTTON_CANCEL)]) ?>
+        <?= Html::submitButton('Previous', ['class' => 'btn btn-default', 'name' => 'wizard_previous']) ?>
+        <?= Html::submitButton('Save', ['class' => 'btn btn-success', 'name' => 'wizard_save']) ?>
+        <?= Html::submitButton('Cancel', ['class' => 'btn btn-default', 'name' => 'wizard_cancel']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

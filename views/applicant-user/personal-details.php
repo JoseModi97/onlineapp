@@ -21,8 +21,9 @@ $model = $event->data['model'];
     <?= $form->field($model, 'mobile_no')->textInput(['maxlength' => true]) ?>
 
     <div class="form-group">
-        <?= Html::submitButton('Next', ['class' => 'btn btn-primary', 'name' => $event->action->buttonName(beastbytes\wizard\WizardBehavior::BUTTON_NEXT)]) ?>
-        <?= Html::submitButton('Cancel', ['class' => 'btn btn-default', 'name' => $event->action->buttonName(beastbytes\wizard\WizardBehavior::BUTTON_CANCEL)]) ?>
+        <?= Html::submitButton('Next', ['class' => 'btn btn-primary', 'name' => 'wizard_next']) ?>
+        <?= Html::submitButton('Cancel', ['class' => 'btn btn-default', 'name' => 'wizard_cancel']) ?>
+        <?php // The 'cancel' button might need special handling in controller or behavior to trigger EVENT_CANCEL ?>
     </div>
 
     <?php ActiveForm::end(); ?>
