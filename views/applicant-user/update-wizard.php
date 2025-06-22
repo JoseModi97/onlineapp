@@ -91,6 +91,5 @@ $stepTitles = [
                 <?= Yii::$app->session->getFlash('error') ?>
             </div>
         <?php endif; ?>
-    <?php endif; ?>
 
 </div>
