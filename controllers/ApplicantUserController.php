@@ -11,6 +11,7 @@ use app\models\search\AppApplicantUserSearch;
 use yii\web\NotFoundHttpException;
 use app\models\AppApplicant;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Html; // Added for Html::errorSummary
 
 class ApplicantUserController extends Controller
 {
@@ -49,159 +50,193 @@ class ApplicantUserController extends Controller
     public function actionUpdateWizard($currentStep = null, $applicant_user_id = null)
     {
         $session = Yii::$app->session;
-        // $wizardDataKeyPrefix = 'applicant_wizard_'; // Session storage per step is no longer the primary mechanism
+        $wizardDataKeyPrefix = 'applicant_wizard_';
 
-        // Initialize or load models
-        if ($applicant_user_id) {
-            $model = $this->findModel($applicant_user_id);
-            $appApplicantModel = $model->getAppApplicant()->one() ?? new AppApplicant();
-            $appApplicantModel->applicant_user_id = $model->applicant_user_id; // Ensure FK is set
+        // Initialize applicant_user_id: from param, then session, then null
+        if ($applicant_user_id === null) {
+            $applicant_user_id = $session->get($wizardDataKeyPrefix . 'applicant_user_id');
         } else {
-            $model = new AppApplicantUser();
-            $appApplicantModel = new AppApplicant();
-            // If creating new, $applicant_user_id will be set after first model save
-        }
-
-        // Determine current step for initial rendering (e.g. if URL specifies it or returning from error)
-        // The JS plugin handles actual step-to-step navigation.
-        // If currentStep is not in URL, default to the first step.
-        // If form submitted with errors, controller might set $currentStep to the step with the first error.
-        if ($currentStep === null || !in_array($currentStep, $this->_steps)) {
-            $currentStep = Yii::$app->request->get('currentStep', self::STEP_PERSONAL_DETAILS);
-            if (!in_array($currentStep, $this->_steps)) {
-                $currentStep = self::STEP_PERSONAL_DETAILS;
+            // If applicant_user_id is passed in URL, it might be start of new wizard or specific record
+            // If session exists and ID differs, could be starting new wizard for different user, clear old session
+            if ($session->has($wizardDataKeyPrefix . 'applicant_user_id') && $session->get($wizardDataKeyPrefix . 'applicant_user_id') != $applicant_user_id) {
+                foreach ($this->_steps as $s) {
+                    $session->remove($wizardDataKeyPrefix . 'data_step_' . $s);
+                }
             }
+            $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
         }
 
-        $stepRenderData = ['message' => null, 'errorStepIndex' => null];
+        // Determine current step
+        $requestedStep = $currentStep; // Keep track of initially requested step if any
+        if ($currentStep === null) {
+            $currentStep = $session->get($wizardDataKeyPrefix . 'current_step', self::STEP_PERSONAL_DETAILS);
+        }
+        if (!in_array($currentStep, $this->_steps)) {
+            $currentStep = self::STEP_PERSONAL_DETAILS; // Default to first step if invalid
+        }
+        // $session->set($wizardDataKeyPrefix . 'current_step', $currentStep); // Set later after processing POST
+
+        // Load or instantiate models
+        $model = $applicant_user_id ? $this->findModel($applicant_user_id) : new AppApplicantUser();
+        $appApplicantModel = ($applicant_user_id && $model->appApplicant) ? $model->appApplicant : new AppApplicant();
+
+        // Ensure AppApplicant model has applicant_user_id if model (AppApplicantUser) exists and has an ID
+        if ($applicant_user_id && !$appApplicantModel->applicant_user_id) {
+            $appApplicantModel->applicant_user_id = $applicant_user_id;
+        }
+
+        $stepRenderData = ['message' => null];
+        $isValid = false; // To track if current step processing was valid
+
+        // Set scenario for the model based on the current step (even for GET, for client-side validation hints)
+        // This should be based on the $currentStep that will be rendered.
+        $activeRenderStep = $currentStep; // Initially same, might change after POST processing
 
         if (Yii::$app->request->isPost) {
             $postData = Yii::$app->request->post();
+            $currentProcessingStep = $session->get($wizardDataKeyPrefix . 'current_step', $currentStep); // Step being submitted
+            $stepSessionKey = $wizardDataKeyPrefix . 'data_step_' . $currentProcessingStep;
+
 
             if (isset($postData['wizard_cancel'])) {
-                // $session->remove($wizardDataKeyPrefix . 'applicant_user_id'); // Clean up if any session ID was stored
-                // $session->remove($wizardDataKeyPrefix . 'current_step');
+                foreach ($this->_steps as $s) { $session->remove($wizardDataKeyPrefix . 'data_step_' . $s); }
+                $session->remove($wizardDataKeyPrefix . 'applicant_user_id');
+                $session->remove($wizardDataKeyPrefix . 'current_step');
                 Yii::$app->session->setFlash('info', 'Wizard cancelled.');
                 return $this->redirect(['index']);
             }
 
-            // Only 'wizard_save' button submits the form now
-            if (isset($postData['wizard_save'])) {
-                // Load data for both models from the single POST request
-                $modelLoaded = $model->load($postData);
-                $appApplicantModelLoaded = $appApplicantModel->load($postData);
+            $currentStepIndex = array_search($currentProcessingStep, $this->_steps);
 
-                // Set scenarios for validation if you have them
-                $model->scenario = AppApplicantUser::SCENARIO_DEFAULT; // Or a specific "wizard_save" scenario
-                // $appApplicantModel->scenario = AppApplicant::SCENARIO_DEFAULT; // If applicable
-
-                // Validate both models
-                $modelValid = $model->validate();
-                $appApplicantModelValid = $appApplicantModel->validate();
-
-                if ($modelValid && $appApplicantModelValid) {
-                    $transaction = Yii::$app->db->beginTransaction();
-                    try {
-                        if ($model->save(false)) { // Save without re-validating
-                            // If it was a new user, applicant_user_id is now available
-                            // Assign it to appApplicantModel if it's also new
-                            if ($model->isNewRecord || !$appApplicantModel->applicant_user_id) {
-                                 // This condition might be tricky if $model was new but $appApplicantModel was somehow pre-existing without ID
-                                 // More robust: if $appApplicantModel is new or its FK isn't set to the now-known $model->id
-                                if ($appApplicantModel->isNewRecord || $appApplicantModel->applicant_user_id != $model->applicant_user_id) {
-                                   $appApplicantModel->applicant_user_id = $model->applicant_user_id;
-                                }
-                            }
-                            if ($appApplicantModel->save(false)) { // Save without re-validating
-                                $transaction->commit();
-                                Yii::$app->session->setFlash('success', 'Applicant details saved successfully.');
-                                // $session->remove($wizardDataKeyPrefix . 'applicant_user_id'); // Clean up
-                                // $session->remove($wizardDataKeyPrefix . 'current_step');
-                                return $this->redirect(['view', 'applicant_user_id' => $model->applicant_user_id]);
-                            } else {
-                                $transaction->rollBack();
-                                $stepRenderData['message'] = 'Error saving applicant specifics: ' . Html::errorSummary($appApplicantModel);
-                                // Determine which step has the error for $appApplicantModel
-                                $stepRenderData['errorStepIndex'] = array_search(self::STEP_APPLICANT_SPECIFICS, $this->_steps);
-                                $currentStep = self::STEP_APPLICANT_SPECIFICS; // Ensure view knows current context
-                            }
+            if (isset($postData['wizard_previous'])) {
+                if ($currentStepIndex > 0) {
+                    $activeRenderStep = $this->_steps[$currentStepIndex - 1];
+                }
+                // No data saving on previous
+            } elseif (isset($postData['wizard_next']) || isset($postData['wizard_save'])) {
+                // Load and validate current step's model
+                if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS) {
+                    $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
+                    if ($model->load($postData) && $model->validate()) {
+                        $session->set($stepSessionKey, $model->getAttributes());
+                        $isValid = true;
+                        if ($model->isNewRecord) {
+                            if ($model->save(false)) {
+                                $applicant_user_id = $model->applicant_user_id;
+                                $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
+                                $appApplicantModel->applicant_user_id = $applicant_user_id; // Link AppApplicant
+                            } else { $isValid = false; $stepRenderData['message'] = 'Failed to save personal details.'; Yii::error($model->errors); }
                         } else {
-                            $transaction->rollBack();
-                            $stepRenderData['message'] = 'Error saving applicant user details: ' . Html::errorSummary($model);
-                            // Determine which step has the error for $model
-                            if (count(array_intersect_key($model->getErrors(), array_flip($model->getAttributes($model->scenarios()[AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS] ?? []))))) {
-                                $stepRenderData['errorStepIndex'] = array_search(self::STEP_PERSONAL_DETAILS, $this->_steps);
-                                $currentStep = self::STEP_PERSONAL_DETAILS;
-                            } else if (count(array_intersect_key($model->getErrors(), array_flip($model->getAttributes($model->scenarios()[AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS] ?? []))))) {
-                                 $stepRenderData['errorStepIndex'] = array_search(self::STEP_ACCOUNT_SETTINGS, $this->_steps);
-                                 $currentStep = self::STEP_ACCOUNT_SETTINGS;
-                            } else { // Default to first step if specific step can't be determined
-                                $stepRenderData['errorStepIndex'] = 0;
-                                $currentStep = $this->_steps[0];
+                             if (!$model->save(false)) { $isValid = false; $stepRenderData['message'] = 'Failed to update personal details.'; Yii::error($model->errors); }
+                        }
+                    } else { $stepRenderData['message'] = 'Please correct errors in Personal Details.'; }
+                } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
+                    // $appApplicantModel->scenario = ... ; // if exists
+                    if ($appApplicantModel->load($postData) && $appApplicantModel->validate()) {
+                        $session->set($stepSessionKey, $appApplicantModel->getAttributes());
+                        $isValid = true;
+                        // No immediate save for AppApplicantModel here, saved at the end or if explicitly designed
+                    } else { $stepRenderData['message'] = 'Please correct errors in Applicant Specifics.'; }
+                } elseif ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
+                    $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
+                    if ($model->load($postData) && $model->validate()) {
+                        $session->set($stepSessionKey, $model->getAttributes(['username', 'password', 'profile_image', 'change_pass']));
+                        $isValid = true;
+                         // No immediate save for account settings here, saved at the end
+                    } else { $stepRenderData['message'] = 'Please correct errors in Account Settings.';}
+                }
+
+                if ($isValid) {
+                    if (isset($postData['wizard_next'])) {
+                        if ($currentStepIndex < count($this->_steps) - 1) {
+                            $activeRenderStep = $this->_steps[$currentStepIndex + 1];
+                        } else { $activeRenderStep = $currentProcessingStep; /* Stay on last step */ }
+                    } elseif (isset($postData['wizard_save'])) {
+                        if ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) { // Final save on last step
+                            $personalDetailsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []);
+                            $applicantSpecificsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_APPLICANT_SPECIFICS, []);
+                            $accountSettingsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_ACCOUNT_SETTINGS, []);
+
+                            if (empty($applicant_user_id)) {
+                                 Yii::$app->session->setFlash('error', 'Applicant User ID is missing. Cannot save.');
+                                 $activeRenderStep = self::STEP_PERSONAL_DETAILS; // redirect to first step
+                            } else {
+                                $finalModel = $this->findModel($applicant_user_id);
+                                $finalAppApplicantModel = $finalModel->getAppApplicant()->one() ?? new AppApplicant();
+                                $finalAppApplicantModel->applicant_user_id = $applicant_user_id;
+
+                                $finalModel->setAttributes($personalDetailsData, false); // Already saved if new/changed
+                                $finalModel->setAttributes($accountSettingsData, false);
+                                $finalAppApplicantModel->setAttributes($applicantSpecificsData, false);
+
+                                $finalModel->scenario = AppApplicantUser::SCENARIO_DEFAULT;
+
+                                $transaction = Yii::$app->db->beginTransaction();
+                                try {
+                                    if ($finalModel->save()) {
+                                        if ($finalAppApplicantModel->save()) {
+                                            $transaction->commit();
+                                            Yii::$app->session->setFlash('success', 'Applicant details saved successfully.');
+                                            foreach ($this->_steps as $s) { $session->remove($wizardDataKeyPrefix . 'data_step_' . $s); }
+                                            $session->remove($wizardDataKeyPrefix . 'applicant_user_id');
+                                            $session->remove($wizardDataKeyPrefix . 'current_step');
+                                            return $this->redirect(['view', 'applicant_user_id' => $finalModel->applicant_user_id]);
+                                        } else {
+                                            $transaction->rollBack();
+                                            $stepRenderData['message'] = 'Error saving applicant specifics: ' . Html::errorSummary($finalAppApplicantModel); Yii::error($finalAppApplicantModel->errors);
+                                        }
+                                    } else {
+                                        $transaction->rollBack();
+                                        $stepRenderData['message'] = 'Error saving applicant user details: ' . Html::errorSummary($finalModel); Yii::error($finalModel->errors);
+                                    }
+                                } catch (\Exception $e) {
+                                    $transaction->rollBack();
+                                    $stepRenderData['message'] = 'An error occurred: ' . $e->getMessage(); Yii::error($e->getMessage());
+                                }
+                                $activeRenderStep = $currentProcessingStep; // Stay on current step if save failed
                             }
                         }
-                    } catch (\Exception $e) {
-                        $transaction->rollBack();
-                        $stepRenderData['message'] = 'An error occurred: ' . $e->getMessage();
-                        // Attempt to set a relevant step index, or default
-                        $stepRenderData['errorStepIndex'] = $stepRenderData['errorStepIndex'] ?? 0;
-                        $currentStep = $this->_steps[$stepRenderData['errorStepIndex']];
                     }
-                } else {
-                    // Validation failed, determine which step to show
-                    $stepRenderData['message'] = 'Please correct the errors indicated below.';
-
-                    // Define actual attributes for each step to improve error navigation
-                    $personalDetailsAttrs = ['surname', 'first_name', 'other_name', 'email_address', 'mobile_no'];
-                    $applicantSpecificsAttrs = ['gender', 'dob', 'religion', 'country_code', 'national_id', 'marital_status'];
-                    $accountSettingsAttrs = ['username', 'password', 'change_pass', 'profile_image'];
-
-                    if (!$modelValid) {
-                        $modelErrors = $model->getErrors();
-                        if (count(array_intersect_key($modelErrors, array_flip($personalDetailsAttrs))) > 0) {
-                            $stepRenderData['errorStepIndex'] = array_search(self::STEP_PERSONAL_DETAILS, $this->_steps);
-                        } elseif (count(array_intersect_key($modelErrors, array_flip($accountSettingsAttrs))) > 0) {
-                             $stepRenderData['errorStepIndex'] = array_search(self::STEP_ACCOUNT_SETTINGS, $this->_steps);
-                        }
-                        // If $model errors don't match specific steps, errorStepIndex remains null for now
-                    }
-
-                    if (!$appApplicantModelValid) {
-                        $appErrors = $appApplicantModel->getErrors();
-                        // If errorStepIndex is not already set by $model errors, or if $appApplicantModel errors are for its specific step
-                        if (is_null($stepRenderData['errorStepIndex']) && count(array_intersect_key($appErrors, array_flip($applicantSpecificsAttrs))) > 0) {
-                            $stepRenderData['errorStepIndex'] = array_search(self::STEP_APPLICANT_SPECIFICS, $this->_steps);
-                        }
-                    }
-
-                    // Fallback if no specific error step determined, or set currentStep based on determined index
-                    if (is_null($stepRenderData['errorStepIndex'])) {
-                        $stepRenderData['errorStepIndex'] = 0; // Default to first tab
-                    }
-                    $currentStep = $this->_steps[$stepRenderData['errorStepIndex']];
+                } else { // Not $isValid
+                    $activeRenderStep = $currentProcessingStep; // Stay on current step if validation failed
                 }
             }
+            $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
+            $currentStep = $activeRenderStep; // Update currentStep for rendering
+        } else { // GET Request
+             $session->set($wizardDataKeyPrefix . 'current_step', $currentStep); // Set current step for GET
         }
 
-        // For GET requests or if POST but redirecting back with errors:
-        // Ensure the $currentStep (for JS navigation target) is correctly set.
-        // If $stepRenderData['errorStepIndex'] is set, that's the target.
-        // Otherwise, $currentStep determined at the beginning of the action is used.
-        $targetStepForJs = $stepRenderData['errorStepIndex'] !== null ? $this->_steps[$stepRenderData['errorStepIndex']] : $currentStep;
 
-        // If scenarios were used for GET to help client-side validation, they might still be useful
-        // However, with a single form, client-side validation should ideally work across all fields
-        // based on the model's overall rules active for the current scenario (e.g., SCENARIO_DEFAULT).
-        // For simplicity, we might rely on server-side validation for now.
-        // if ($targetStepForJs === self::STEP_PERSONAL_DETAILS) {
-        // $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
-        // } elseif ($targetStepForJs === self::STEP_ACCOUNT_SETTINGS) {
-        // $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
-        // }
+        // Load data from session for the step that will be rendered
+        // This ensures that if we navigate (Next/Previous) or stay due to error, correct data is shown
+        $renderStepSessionKey = $wizardDataKeyPrefix . 'data_step_' . $currentStep;
+        $renderStepDataFromSession = $session->get($renderStepSessionKey, []);
 
+        if ($currentStep === self::STEP_PERSONAL_DETAILS || $currentStep === self::STEP_ACCOUNT_SETTINGS) {
+            // For personal details and account settings, $model is primary.
+            // If coming from POST and it was valid and we moved step, $model might be "empty" for the new step.
+            // If staying on step due to error, $model already has POSTed data.
+            // If GET, load from session.
+            if (!Yii::$app->request->isPost || (Yii::$app->request->isPost && $isValid && $currentProcessingStep !== $currentStep) || (Yii::$app->request->isPost && !$isValid) ) {
+                 if(!empty($renderStepDataFromSession)) $model->setAttributes($renderStepDataFromSession, false);
+            }
+        } elseif ($currentStep === self::STEP_APPLICANT_SPECIFICS) {
+            // Similarly for $appApplicantModel
+             if (!Yii::$app->request->isPost || (Yii::$app->request->isPost && $isValid && $currentProcessingStep !== $currentStep) || (Yii::$app->request->isPost && !$isValid) ) {
+                if(!empty($renderStepDataFromSession)) $appApplicantModel->setAttributes($renderStepDataFromSession, false);
+             }
+        }
+
+        // Set scenario for the actual step being rendered
+        if ($currentStep === self::STEP_PERSONAL_DETAILS) {
+            $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
+        } elseif ($currentStep === self::STEP_ACCOUNT_SETTINGS) {
+            $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
+        } // Add for $appApplicantModel if needed
 
         return $this->render('update-wizard', [
-            'currentStep' => $targetStepForJs, // This tells JS which tab to open
+            'currentStep' => $currentStep,
             'model' => $model,
             'appApplicantModel' => $appApplicantModel,
             'stepData' => $stepRenderData,

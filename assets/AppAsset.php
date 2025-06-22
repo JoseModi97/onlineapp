@@ -21,10 +21,8 @@ class AppAsset extends AssetBundle
     public $baseUrl = '@web';
     public $css = [
         'css/site.css',
-        'css/multi-form.css', // Added multi-form.css
     ];
     public $js = [
-        'js/multi-form.js', // Added multi-form.js
     ];
     public $depends = [
         'yii\web\YiiAsset',

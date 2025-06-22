@@ -1,38 +1,42 @@
 <?php
 
 use yii\helpers\Html;
-// Removed: use yii\widgets\ActiveForm; // ActiveForm is now started in update-wizard.php
+use yii\widgets\ActiveForm;
 
 /** @var yii\web\View $this */
-/** @var app\models\AppApplicantUser|null $model Nullable if not the active step for this model */
-/** @var yii\widgets\ActiveForm $form Passed from update-wizard.php */
+/** @var app\models\AppApplicantUser $model */
 ?>
 
 <div class="account-settings-form">
 
-    <?php // ActiveForm::begin() is removed. The form is started in update-wizard.php ?>
+    <?php $form = ActiveForm::begin([
+        'id' => 'account-settings-form',
+    ]); ?>
 
-    <?php if ($model): // Check if model is provided for this step ?>
-        <?= $form->field($model, 'username')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'username')->textInput(['maxlength' => true]) ?>
 
-        <?= $form->field($model, 'password')->passwordInput(['maxlength' => true, 'autocomplete' => 'new-password']) ?>
+    <?= $form->field($model, 'password')->passwordInput(['maxlength' => true, 'autocomplete' => 'new-password', 'placeholder' => ($model->isNewRecord ? '' : 'Leave blank if not changing')]) ?>
 
-        <?php
-        // Ensure 'change_pass' is treated as boolean for checkbox
-        // If $model->change_pass is null or not set, it might not correctly reflect in checkbox
-        // Defaulting to 0 or 1 might be needed if scenarios imply it.
-        // For now, assume model handles its type.
-        ?>
-        <?= $form->field($model, 'change_pass')->checkbox(['label' => 'Set/Change Password']) ?>
+    <?php
+    // The 'change_pass' field in the original model was a hidden input then a checkbox.
+    // Restoring to a checkbox seems more user-friendly if password change is optional on update.
+    // If $model->isNewRecord, password is required, so 'change_pass' might not be as relevant,
+    // but for updates, it indicates intent.
+    // The model's SCENARIO_STEP_ACCOUNT_SETTINGS should handle validation based on this.
+    ?>
+    <?= $form->field($model, 'change_pass')->checkbox(['label' => 'Set/Change Password']) ?>
 
-        <?= $form->field($model, 'profile_image')->textInput(['maxlength' => true]) // Consider using a file input widget here ?>
-        <?php // Example: $form->field($model, 'profileImageFile')->fileInput() if using a file upload approach ?>
-    <?php else: ?>
-        <p>Account settings form is not available at this step.</p>
-    <?php endif; ?>
 
-    <?php // Submit buttons are removed. They are now in update-wizard.php ?>
+    <?= $form->field($model, 'profile_image')->textInput(['maxlength' => true]) // Consider using a file input widget here ?>
+    <?php // Example: $form->field($model, 'profileImageFile')->fileInput() if using a file upload approach ?>
 
-    <?php // ActiveForm::end() is removed. The form is ended in update-wizard.php ?>
+
+    <div class="form-group">
+        <?= Html::submitButton('<i class="fas fa-arrow-left"></i> Previous', ['class' => 'btn btn-info', 'name' => 'wizard_previous', 'formnovalidate' => true]) ?>
+        <?= Html::submitButton('<i class="fas fa-save"></i> Save Application', ['class' => 'btn btn-success', 'name' => 'wizard_save']) ?>
+        <?= Html::submitButton('<i class="fas fa-times"></i> Cancel', ['class' => 'btn btn-secondary', 'name' => 'wizard_cancel', 'formnovalidate' => true]) ?>
+    </div>
+
+    <?php ActiveForm::end(); ?>
 
 </div>
