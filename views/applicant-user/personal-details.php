@@ -1,31 +1,29 @@
 <?php
 
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
+// Removed: use yii\widgets\ActiveForm; // ActiveForm is now started in update-wizard.php
 
 /** @var yii\web\View $this */
-/** @var app\models\AppApplicantUser $model */
-/** @var yii\widgets\ActiveForm $form */
+/** @var app\models\AppApplicantUser|null $model Nullable if not the active step for this model */
+/** @var yii\widgets\ActiveForm $form Passed from update-wizard.php */
 ?>
 
 <div class="personal-details-form">
 
-    <?php $form = ActiveForm::begin([
-        'id' => 'personal-details-form',
-        // Action will be handled by the main update-wizard URL, parameters define step
-    ]); ?>
+    <?php // ActiveForm::begin() is removed. The form is started in update-wizard.php ?>
 
-    <?= $form->field($model, 'surname')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($model, 'first_name')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($model, 'other_name')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($model, 'email_address')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($model, 'mobile_no')->textInput(['maxlength' => true]) ?>
+    <?php if ($model): // Check if model is provided for this step ?>
+        <?= $form->field($model, 'surname')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'first_name')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'other_name')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'email_address')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'mobile_no')->textInput(['maxlength' => true]) ?>
+    <?php else: ?>
+        <p>Personal details form is not available at this step.</p>
+    <?php endif; ?>
 
-    <div class="form-group">
-        <?= Html::submitButton('Next <i class="fas fa-arrow-right"></i>', ['class' => 'btn btn-primary', 'name' => 'wizard_next']) ?>
-        <?= Html::submitButton('<i class="fas fa-times"></i> Cancel', ['class' => 'btn btn-secondary', 'name' => 'wizard_cancel', 'formnovalidate' => true]) ?>
-    </div>
+    <?php // Submit buttons are removed. They are now in update-wizard.php ?>
 
-    <?php ActiveForm::end(); ?>
+    <?php // ActiveForm::end() is removed. The form is ended in update-wizard.php ?>
 
 </div>

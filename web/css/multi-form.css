@@ -1,0 +1,77 @@
+/* multi-form.css adjustments */
+
+/* Essential plugin styles for tab visibility */
+.tab {
+    display: none;
+    width: 100%;
+    /* height: auto; Let content define height */
+    margin: 0px auto;
+    padding: 20px 0; /* Add some padding within the tab for content */
+}
+.current {
+    display: block;
+}
+
+/* Step indicators styling */
+.step {
+    height: 30px;  /* Diameter of the circle */
+    width: 30px;   /* Diameter of the circle */
+    cursor: pointer;
+    margin: 0 2px; /* Spacing between circles */
+    color: #ffffff; /* Number color */
+    background-color: #6c757d; /* Bootstrap secondary/gray color for default step */
+    border: none;
+    border-radius: 50%; /* Makes it a circle */
+    display: inline-block;
+    opacity: 0.7;
+    line-height: 20px; /* Adjust to vertically center the number inside, depends on padding */
+    text-align: center;
+    padding: 5px;      /* Padding around the number */
+    font-size: 14px;   /* Size of the step number */
+    font-weight: bold;
+}
+
+.step.active {
+    opacity: 1;
+    background-color: #0d6efd; /* Bootstrap primary color for active step */
+}
+
+/* .step.finish is not directly implemented by the current JS, but good for future */
+.step.finish {
+    background-color: #198754; /* Bootstrap success color for finished step */
+    opacity: 1;
+}
+
+/* Basic error styling for any .error class messages (Yii's field errors are more specific) */
+.error {
+    color: #dc3545; /* Bootstrap danger color */
+    font-size: 0.875em; /* Smaller text for error messages */
+}
+
+/* Styling for the overall form container within the wizard, if needed.
+   This helps to override global 'form' styles if they are too aggressive. */
+.app-applicant-user-update-wizard #applicant-update-wizard-form {
+  margin: 0; /* Reset margin if global 'form' style was too aggressive */
+  padding: 0; /* Reset padding */
+  width: 100%; /* Take full width of its container */
+  min-width: initial; /* Reset min-width */
+  background-color: transparent; /* Transparent background, assuming page has its own */
+  border: none; /* No border by default for the form tag itself */
+  box-shadow: none; /* No shadow by default for the form tag itself */
+  font-family: inherit; /* Inherit font from body/theme */
+}
+
+/* General styling for inputs and buttons within this form should be handled by Bootstrap
+   by applying appropriate .form-control, .btn, .btn-primary etc. classes in the HTML (PHP views).
+   The plugin's original CSS for input and button tags was too generic.
+*/
+
+/* The main .app-applicant-user-update-wizard div can have padding/margin if desired,
+   controlled by site.css or view-specific styles rather than this plugin CSS. */
+/* For example, to ensure some padding around the wizard content:
+.app-applicant-user-update-wizard {
+    padding: 20px;
+    background-color: #f8f9fa; // A light background for the wizard area
+    border-radius: 5px;
+}
+*/

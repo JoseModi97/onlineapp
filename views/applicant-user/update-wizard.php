@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\widgets\ActiveForm; // Ensure ActiveForm is used for the main form wrapper
 
 /** @var yii\web\View $this */
 /** @var string $currentStep */
@@ -17,36 +18,16 @@ if ($model && !$model->isNewRecord) {
 }
 $this->params['breadcrumbs'][] = $this->title;
 
-$stepTitles = [
-    'personal-details' => 'Personal Details',
-    'applicant-specifics' => 'Applicant Specifics',
-    'account-settings' => 'Account Settings',
-];
+// This will be used by the multi-step form JS
+$currentStepIndex = array_search($currentStep, $steps);
+if ($currentStepIndex === false) {
+    $currentStepIndex = 0; // Default to first step if not found
+}
 
 ?>
 <div class="app-applicant-user-update-wizard">
 
     <h1><?= Html::encode($this->title) ?></h1>
-
-    <?php // More robust step navigation UI ?>
-    <ul class="nav nav-tabs" style="margin-bottom: 20px;">
-        <?php foreach ($steps as $stepName): ?>
-            <li role="presentation" class="<?= $currentStep === $stepName ? 'active' : '' ?>">
-                <?php
-                // Create a non-clickable tab for future steps if not yet accessible or for past steps if preferred.
-                // For simplicity here, all steps are linked.
-                // Logic can be added to disable future steps if needed.
-                $link = Html::a($stepTitles[$stepName] ?? ucfirst(str_replace('-', ' ', $stepName)),
-                    ['update-wizard', 'currentStep' => $stepName, 'applicant_user_id' => $model->applicant_user_id ?? Yii::$app->session->get('applicant_wizard_applicant_user_id')]
-                );
-                // If it's the current step, make it a span or just text, not a link
-                // However, Yii's Nav widget usually handles this by making active tab non-link or visually distinct.
-                // For manual tabs, let's keep them as links to allow refresh or explicit navigation if desired.
-                echo $link;
-                ?>
-            </li>
-        <?php endforeach; ?>
-    </ul>
 
     <?php if (Yii::$app->session->hasFlash('error')): ?>
         <div class="alert alert-danger">
@@ -62,34 +43,128 @@ $stepTitles = [
         <div class="alert alert-danger"><?= Html::encode($stepData['message']) ?></div>
     <?php endif; ?>
 
+    <?php $form = ActiveForm::begin([
+        'id' => 'applicant-update-wizard-form',
+        // The action will be the current URL, which is the update-wizard action itself.
+        // Method is POST by default.
+    ]); ?>
 
-    <?php if ($currentStep && is_string($currentStep)): ?>
-        <?php
-        $stepViewFile = Yii::getAlias('@app/views/applicant-user/' . $currentStep . '.php');
+    <?php
+    // Render step views, wrapping each in a 'tab' div
+    // The controller will still determine which models/data are primarily active for POST,
+    // but all forms need to be within the main $form
+    foreach ($steps as $stepName) {
+        echo '<div class="tab">'; // Each step content is a "tab" for the JS plugin
+        $stepViewFile = Yii::getAlias('@app/views/applicant-user/' . $stepName . '.php');
         if (file_exists($stepViewFile)) {
-            echo $this->render($currentStep, [
-                'model' => $model,
-                'appApplicantModel' => $appApplicantModel,
-                'stepData' => $stepData, // Pass along for any specific messages within step views
+            // We need to pass the main form object to the step views
+            // so that their fields are part of this single form.
+            // However, the step views use their own ActiveForm::begin(). This needs to be changed.
+            // For now, let's render them. The next step will be to modify step views.
+            echo $this->render($stepName, [
+                'model' => ($stepName === 'personal-details' || $stepName === 'account-settings') ? $model : null, // Pass the correct model
+                'appApplicantModel' => ($stepName === 'applicant-specifics') ? $appApplicantModel : null,
+                'form' => $form, // Pass the main form object
+                'isCurrentStep' => ($currentStep === $stepName), // To help step views manage active state if needed
+                'stepData' => $stepData,
             ]);
         } else {
-            echo '<div class="alert alert-warning">Step view not found: ' . Html::encode($currentStep) . '</div>';
+            echo '<div class="alert alert-warning">Step view not found: ' . Html::encode($stepName) . '</div>';
         }
-        ?>
-    <?php else: ?>
-        <?php // This part is less likely to be hit if controller always defines a currentStep or redirects ?>
-        <div class="alert alert-info">Wizard has ended or step is not defined.</div>
-        <?php if (Yii::$app->session->hasFlash('success')): ?>
-            <div class="alert alert-success">
-                <?= Yii::$app->session->getFlash('success') ?>
-            </div>
-        <?php endif; ?>
-        <?php // Link to view or index could be here if wizard completes without redirect by controller ?>
-        <?php endif; ?>
-        <?php if (Yii::$app->session->hasFlash('error')): ?>
-            <div class="alert alert-danger">
-                <?= Yii::$app->session->getFlash('error') ?>
-            </div>
-        <?php endif; ?>
+        echo '</div>';
+    }
+    ?>
+
+    <div style="overflow:auto; margin-top: 20px;">
+        <div style="float:right;">
+            <button type="button" class="previous btn btn-secondary">Previous</button>
+            <button type="button" class="next btn btn-primary">Next</button>
+            <?php // The submit button for the form. Name it 'wizard_save' to match controller logic. ?>
+            <?= Html::submitButton('<i class="fas fa-save"></i> Save Application', ['class' => 'submit btn btn-success', 'name' => 'wizard_save']) ?>
+            <?= Html::submitButton('<i class="fas fa-times"></i> Cancel', ['class' => 'btn btn-danger', 'name' => 'wizard_cancel', 'formnovalidate' => true, 'style' => 'margin-left: 5px;']) ?>
+        </div>
+    </div>
+
+    <!-- Circles which indicates the steps of the form: -->
+    <div style="text-align:center;margin-top:40px;">
+        <?php foreach ($steps as $index => $stepName): ?>
+            <span class="step"><?= $index + 1 ?></span>
+        <?php endforeach; ?>
+    </div>
+
+    <?php ActiveForm::end(); ?>
+
+    <?php // Display success message if wizard completed (less likely here with JS nav, but good fallback) ?>
+    <?php if (Yii::$app->session->hasFlash('success') && (!$currentStep || !is_string($currentStep))): ?>
+        <div class="alert alert-success" style="margin-top:20px;">
+            <?= Yii::$app->session->getFlash('success') ?>
+        </div>
+    <?php endif; ?>
 
 </div>
+
+<?php
+// Initialize the multiStepForm plugin
+// We pass the current step index to the navigateTo function.
+$this->registerJs("
+    var wizardForm = $('#applicant-update-wizard-form');
+    wizardForm.multiStepForm({
+        // We will not use multiStepForm's validation, Yii's validation will be used.
+        // noValidate: true, // This option doesn't exist in the plugin, need to modify plugin or rely on Yii
+        // We need to handle submissions carefully.
+        // The plugin's 'submit' button will trigger the form submission.
+        // The controller's 'wizard_save' logic should handle the final save.
+        // 'Next' and 'Previous' clicks are handled by the plugin.
+        // We need to ensure that Yii's validation is triggered before allowing 'Next'.
+        // This might require custom JS to integrate with Yii's ActiveForm client validation.
+
+        // For now, let's handle basic navigation.
+        // The actual form submission for next/previous for saving intermediate steps
+        // will need to be changed. The plugin assumes client-side only navigation between steps
+        // until the final submit.
+
+        // Let's modify the 'next' button behavior to submit the form for the current step
+        // This is a deviation from the plugin's typical use but aligns with current backend.
+    })
+    .navigateTo({$currentStepIndex}); // Navigate to the current step based on controller
+
+    // Override plugin's next button behavior for now to trigger Yii form submission for current step
+    // This is complex because the plugin wants to control visibility.
+    // A better approach might be to use AJAX for step saving if we want client-side feel
+    // or stick to full page reloads for each step with Yii handling state.
+
+    // Given the existing controller saves data on 'wizard_next',
+    // the 'next' button from the plugin should probably trigger a form submit
+    // with a specific input that indicates 'wizard_next' for the *current* visible step.
+    // This is tricky as the plugin hides/shows tabs.
+
+    // Let's try a simpler approach first: the plugin handles client-side navigation.
+    // Yii validation will occur on the final submit.
+    // This means intermediate saves on 'next' are lost with the pure JS plugin.
+
+    // To keep intermediate saves:
+    // We might need to make the 'Next' button a submit button for the main form,
+    // and have the controller determine which step's data to process and save,
+    // then redirect back to the wizard, telling the JS which step to display.
+
+    // For this iteration, let's use the plugin for client-side navigation only.
+    // The 'Save Application' button will be the one that submits all data.
+    // This changes the current behavior of saving per step.
+
+    // If per-step saving is crucial, we need to:
+    // 1. Make 'Next' button a submit button (e.g., name='wizard_next_js').
+    // 2. JS on 'Next' click:
+    //    - Ensure current tab's data is part of the POST.
+    //    - Submit the form.
+    // 3. Controller:
+    //    - Detect 'wizard_next_js'.
+    //    - Save current step's data.
+    //    - Redirect back, setting the next step.
+    //    - JS on page load navigates to the correct step.
+
+    // This is the most direct way to use the plugin as-is for visuals/flow,
+    // but changes the save behavior to a single final save.
+    // User will be informed if this change is significant.
+
+", \yii\web\View::POS_READY);
+?>
