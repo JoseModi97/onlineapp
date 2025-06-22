@@ -215,7 +215,7 @@ class SiteController extends Controller
 
             return $this->goHome();
         }
-
+        $this->layout = '@app/views/layouts/auth.php';
         return $this->render('resetPassword', [
             'model' => $model,
         ]);
