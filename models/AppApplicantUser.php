@@ -65,7 +65,7 @@ class AppApplicantUser extends \yii\db\ActiveRecord
             'surname' => 'Surname',
             'other_name' => 'Other Name',
             'email_address' => 'Email Address',
-            'country_code' => 'Country Code',
+            // 'country_code' => 'Country Code', // Removed as this property no longer exists on this model
             'mobile_no' => 'Mobile No',
             'password' => 'Password',
             'activation_code' => 'Activation Code',
