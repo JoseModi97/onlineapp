@@ -220,7 +220,17 @@ class ApplicantUserController extends Controller
                 } elseif ($action === 'save' && $currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
                     $finalSaveResult = $this->performFinalSave($applicant_user_id, $session, $wizardDataKeyPrefix);
                     if ($finalSaveResult['success']) {
-                        if ($request->isAjax) return ['success' => true, 'completed' => true, 'redirectUrl' => \yii\helpers\Url::to(['view', 'applicant_user_id' => $applicant_user_id])];
+                        // MODIFIED RESPONSE for successful save
+                        if ($request->isAjax) {
+                            return [
+                                'success' => true,
+                                'completed' => true,
+                                'message' => 'Your details have been saved successfully!',
+                                'applicant_user_id' => $applicant_user_id
+                                // Removed 'redirectUrl'
+                            ];
+                        }
+                        // Fallback for non-AJAX, though wizard is primarily AJAX
                         Yii::$app->session->setFlash('success', 'Applicant details saved successfully.');
                         return $this->redirect(['view', 'applicant_user_id' => $applicant_user_id]);
                     } else {

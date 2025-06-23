@@ -56,9 +56,29 @@ $(document).ready(function() {
     // Function to handle AJAX response
     function handleAjaxResponse(response, targetStepKeyForUrl) {
         if (response.success) {
-            if (response.completed && response.redirectUrl) {
-                window.location.href = response.redirectUrl;
-                return;
+            if (response.completed) { // Check for completion flag
+                if (response.redirectUrl) { // Original redirect logic (now fallback or for other types of completion)
+                    window.location.href = response.redirectUrl;
+                    return;
+                } else if (response.message) { // New: Show success modal
+                    $('#successModalMessage').text(response.message);
+                    var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+
+                    // As per user requirement, keep wizard active and buttons enabled.
+                    // No specific action needed here to disable form/buttons if they should remain active.
+                    // If applicant_user_id changed (e.g. on first save), update it.
+                    if (response.applicant_user_id) {
+                        currentApplicantUserId = response.applicant_user_id;
+                        wizardContainer.attr('data-applicant-user-id', currentApplicantUserId);
+                        // Potentially update URL if needed, though staying on same step.
+                        var newUrl = new URL(currentWizardUrl);
+                        newUrl.searchParams.set('applicant_user_id', currentApplicantUserId);
+                        history.pushState({ step: navTabsContainer.find('a.nav-link.active').data('step'), applicant_user_id: currentApplicantUserId }, '', newUrl.toString());
+                        currentWizardUrl = newUrl.toString();
+                    }
+                    return; // Stop further processing like rendering HTML for next step
+                }
             }
             if (response.html) {
                 contentArea.html(response.html);

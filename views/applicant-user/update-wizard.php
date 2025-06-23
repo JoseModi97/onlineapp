@@ -11,16 +11,16 @@ use yii\bootstrap5\Nav; // Using Bootstrap 5 Nav widget for tabs
 /** @var array $steps Array of step names/keys passed from controller */
 
 $this->title = 'Applicant Update Wizard';
-// $this->params['breadcrumbs'][] = ['label' => 'App Applicant Users', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'App Applicant Users', 'url' => ['index']];
 
 // Ensure $model is not null before accessing its properties for breadcrumbs
-// if ($model && $model->hasAttribute('applicant_user_id') && !$model->isNewRecord) {
-//     $this->params['breadcrumbs'][] = ['label' => $model->applicant_user_id, 'url' => ['view', 'applicant_user_id' => $model->applicant_user_id]];
-// } elseif (Yii::$app->session->get('applicant_wizard_applicant_user_id')) {
-//     // Fallback if $model is new but we have an ID from session (e.g. after first step save)
-//     $this->params['breadcrumbs'][] = ['label' => Yii::$app->session->get('applicant_wizard_applicant_user_id'), 'url' => ['view', 'applicant_user_id' => Yii::$app->session->get('applicant_wizard_applicant_user_id')]];
-// }
-// $this->params['breadcrumbs'][] = $this->title;
+if ($model && $model->hasAttribute('applicant_user_id') && !$model->isNewRecord) {
+    $this->params['breadcrumbs'][] = ['label' => $model->applicant_user_id, 'url' => ['view', 'applicant_user_id' => $model->applicant_user_id]];
+} elseif (Yii::$app->session->get('applicant_wizard_applicant_user_id')) {
+    // Fallback if $model is new but we have an ID from session (e.g. after first step save)
+     $this->params['breadcrumbs'][] = ['label' => Yii::$app->session->get('applicant_wizard_applicant_user_id'), 'url' => ['view', 'applicant_user_id' => Yii::$app->session->get('applicant_wizard_applicant_user_id')]];
+}
+$this->params['breadcrumbs'][] = $this->title;
 
 // Define titles for each step for the navigation UI
 $stepTitles = [
@@ -107,8 +107,7 @@ foreach ($steps as $index => $stepKey) {
             <?= Yii::$app->session->getFlash('info') ?>
         </div>
     <?php endif; ?>
-    <?php if (Yii::$app->session->hasFlash('success') && ($currentStep === null || empty($currentStep))): // Show general success if wizard is "done" 
-    ?>
+    <?php if (Yii::$app->session->hasFlash('success') && ($currentStep === null || empty($currentStep)) ): // Show general success if wizard is "done" ?>
         <div class="alert alert-success">
             <?= Yii::$app->session->getFlash('success') ?>
         </div>
@@ -140,8 +139,8 @@ foreach ($steps as $index => $stepKey) {
         } elseif (!$currentStep && Yii::$app->session->hasFlash('success')) {
             // Wizard completed successfully (non-AJAX redirect path or initial load after completion)
             if ($applicantUserIdForNav) {
-                echo Html::a('View Applicant Details', ['view', 'applicant_user_id' => $applicantUserIdForNav], ['class' => 'btn btn-primary']);
-                echo ' ';
+                 echo Html::a('View Applicant Details', ['view', 'applicant_user_id' => $applicantUserIdForNav], ['class' => 'btn btn-primary']);
+                 echo ' ';
             }
             echo Html::a('Back to List', ['index'], ['class' => 'btn btn-secondary']);
         } elseif (!$currentStep && !Yii::$app->session->hasFlash('success')) {
@@ -178,5 +177,23 @@ foreach ($steps as $index => $stepKey) {
         // Cancel button could be a simple link
         // echo Html::a('Cancel', ['index'], ['class' => 'btn btn-warning ms-2', 'name' => 'wizard_cancel']);
         ?>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Success!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="successModalMessage">
+                <!-- Success message will be inserted here by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
