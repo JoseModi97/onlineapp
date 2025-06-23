@@ -15,18 +15,42 @@ use yii\widgets\ActiveForm;
         // Action will be handled by the main update-wizard URL, parameters define step
     ]); ?>
 
-    <?= $form->field($model, 'surname')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($model, 'first_name')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($model, 'other_name')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($model, 'email_address')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($model, 'mobile_no')->textInput(['maxlength' => true]) ?>
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'surname', [
+                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-user"></i></span>{input}</div>',
+            ])->textInput(['maxlength' => true]) ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'first_name', [
+                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-user"></i></span>{input}</div>',
+            ])->textInput(['maxlength' => true]) ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'other_name', [
+                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-user"></i></span>{input}</div>',
+            ])->textInput(['maxlength' => true]) ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($model, 'email_address', [
+                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-envelope"></i></span>{input}</div>',
+            ])->textInput(['maxlength' => true, 'type' => 'email']) ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'mobile_no', [
+                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>{input}</div>',
+            ])->textInput(['maxlength' => true]) ?>
+        </div>
+    </div>
 
     <?php // Navigation buttons are now handled by the main update-wizard.php view and AJAX JS ?>
-    <?php // Ensuring form group for spacing if any other elements were to be added later.
-        // If no other elements, this div could also be removed.
-    ?>
     <div class="form-group visually-hidden">
-        <?php /* Dummy button to ensure form tag is not empty if no other buttons/elements are present, not strictly necessary with fields above */ ?>
         <?= Html::submitButton('Submit', ['style' => 'display:none;']) ?>
     </div>
 
