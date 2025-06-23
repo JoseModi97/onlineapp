@@ -15,9 +15,6 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'username')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'password')->passwordInput(['maxlength' => true, 'autocomplete' => 'new-password', 'placeholder' => ($model->isNewRecord ? '' : 'Leave blank if not changing')]) ?>
-
-    <?= $form->field($model, 'change_pass')->checkbox(['label' => 'Set/Change Password']) ?>
 
     <div class="mb-3">
         <label for="profile-image-input" class="form-label">Profile Image (PNG/JPG, 100x100px)</label>
@@ -33,7 +30,8 @@ use yii\widgets\ActiveForm;
     // echo $form->field($model, 'profile_image')->hiddenInput()->label(false);
     ?>
 
-    <?php // Navigation buttons are now handled by the main update-wizard.php view and AJAX JS ?>
+    <?php // Navigation buttons are now handled by the main update-wizard.php view and AJAX JS 
+    ?>
     <div class="form-group visually-hidden">
         <?= Html::submitButton('Submit', ['style' => 'display:none;']) ?>
     </div>
