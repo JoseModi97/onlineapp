@@ -55,7 +55,6 @@ class ApplicantUserController extends Controller
         $request = Yii::$app->request;
         $wizardDataKeyPrefix = 'applicant_wizard_';
 
-        // Initialize applicant_user_id: from param, then session, then null
         if ($applicant_user_id === null) {
             $applicant_user_id = $session->get($wizardDataKeyPrefix . 'applicant_user_id');
         } else {
@@ -67,7 +66,6 @@ class ApplicantUserController extends Controller
             $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
         }
 
-        // Determine current step for rendering/processing
         $requestedStepInUrl = $currentStep;
         if ($currentStep === null) {
             $currentStep = $session->get($wizardDataKeyPrefix . 'current_step', self::STEP_PERSONAL_DETAILS);
@@ -173,7 +171,8 @@ class ApplicantUserController extends Controller
                     $stepRenderData['message'] = 'Could not load account settings data. Please try again.';
                 }
                 if ($isValid) {
-                    $session->set($stepSessionKey, $model->getAttributes(['username', 'password', 'profile_image', 'change_pass']));
+                    // MODIFIED: Exclude password and change_pass from session data for this step
+                    $session->set($stepSessionKey, $model->getAttributes(['username', 'profile_image']));
                 }
             }
 
@@ -186,7 +185,7 @@ class ApplicantUserController extends Controller
                     }
                     $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
                     if ($request->isAjax) {
-                        try { // *** ADDED TRY-CATCH BLOCK START ***
+                        try {
                             list($nextModel, $nextAppApplicantModel) = $this->loadModelsForStep(
                                 $activeRenderStep,
                                 $applicant_user_id,
@@ -215,22 +214,19 @@ class ApplicantUserController extends Controller
                         } catch (\Throwable $e) {
                             Yii::error("General exception while preparing next step '{$activeRenderStep}' for applicant ID '{$applicant_user_id}': " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
                             return ['success' => false, 'message' => "An unexpected error occurred while preparing the next step ('" . Html::encode($activeRenderStep) . "'). Please try again or contact support."];
-                        } // *** ADDED TRY-CATCH BLOCK END ***
+                        }
                     }
                 } elseif ($action === 'save' && $currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
                     $finalSaveResult = $this->performFinalSave($applicant_user_id, $session, $wizardDataKeyPrefix);
                     if ($finalSaveResult['success']) {
-                        // MODIFIED RESPONSE for successful save
                         if ($request->isAjax) {
                             return [
                                 'success' => true,
                                 'completed' => true,
                                 'message' => 'Your details have been saved successfully!',
                                 'applicant_user_id' => $applicant_user_id
-                                // Removed 'redirectUrl'
                             ];
                         }
-                        // Fallback for non-AJAX, though wizard is primarily AJAX
                         Yii::$app->session->setFlash('success', 'Applicant details saved successfully.');
                         return $this->redirect(['view', 'applicant_user_id' => $applicant_user_id]);
                     } else {
@@ -338,12 +334,15 @@ class ApplicantUserController extends Controller
         $finalAppApplicantModel = $finalModel->getAppApplicant()->one() ?? new AppApplicant();
         $finalAppApplicantModel->applicant_user_id = $applicant_user_id;
 
-        $personalDetailsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []);
+        $personalDetailsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []); // Not directly used for saving if already saved per step
         $applicantSpecificsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_APPLICANT_SPECIFICS, []);
         $accountSettingsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_ACCOUNT_SETTINGS, []);
 
-        $finalModel->setAttributes($accountSettingsData, false);
+        // Apply attributes from relevant steps for final models
+        // $finalModel->setAttributes($personalDetailsData, false); // Personal details already saved/updated if changed.
+        $finalModel->setAttributes($accountSettingsData, false); // Apply account settings (now only username, profile_image)
         $finalAppApplicantModel->setAttributes($applicantSpecificsData, false);
+
         $finalModel->scenario = AppApplicantUser::SCENARIO_DEFAULT;
 
         $transaction = Yii::$app->db->beginTransaction();

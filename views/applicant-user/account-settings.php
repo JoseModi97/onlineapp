@@ -22,6 +22,7 @@ use yii\widgets\ActiveForm;
         </div>
     </div>
 
+    <?php /* Password and Change Password fields removed as per request
     <div class="row">
         <div class="col-md-6">
             <?= $form->field($model, 'password', [
@@ -31,6 +32,7 @@ use yii\widgets\ActiveForm;
             <?= $form->field($model, 'change_pass', ['options' => ['class' => 'mt-2 form-check'] ])->checkbox(['label' => 'Set/Change Password', 'class' => 'form-check-input']) ?>
         </div>
     </div>
+    */ ?>
 
     <div class="row">
         <div class="col-md-6">
