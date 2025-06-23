@@ -20,14 +20,14 @@ use yii\jui\DatePicker;
     <div class="row">
         <div class="col-md-6">
             <?= $form->field($appApplicantModel, 'gender', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-venus-mars"></i></span>{input}</div>',
-            ])->dropDownList(['Male' => 'Male', 'Female' => 'Female'], ['prompt' => 'Select Gender']) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-venus-mars'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->dropDownList(['Male' => 'Male', 'Female' => 'Female'], ['prompt' => 'Select Gender', 'class' => 'form-select']) ?>
         </div>
         <div class="col-md-6">
             <?= $form->field($appApplicantModel, 'dob', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>{input}</div>',
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-calendar-alt'></i></span>{input}</div>\n{hint}\n{error}",
             ])->widget(DatePicker::class, [
-                'options' => ['class' => 'form-control'],
+                'options' => ['class' => 'form-control'], // DatePicker widget usually adds form-control itself
                 'dateFormat' => 'yyyy-MM-dd',
                 'clientOptions' => [
                     'dateFormat' => 'yy-mm-dd',
@@ -42,31 +42,31 @@ use yii\jui\DatePicker;
     <div class="row">
         <div class="col-md-6">
             <?= $form->field($appApplicantModel, 'religion', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-pray"></i></span>{input}</div>',
-            ])->textInput(['maxlength' => true]) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-pray'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
         </div>
         <div class="col-md-6">
             <?= $form->field($appApplicantModel, 'national_id', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-id-card"></i></span>{input}</div>',
-            ])->textInput(['maxlength' => true]) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-id-card'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <?= $form->field($appApplicantModel, 'marital_status', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-ring"></i></span>{input}</div>',
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-ring'></i></span>{input}</div>\n{hint}\n{error}",
             ])->dropDownList([
                 'Single' => 'Single',
                 'Married' => 'Married',
                 'Divorced' => 'Divorced',
                 'Widowed' => 'Widowed',
-            ], ['prompt' => 'Select Marital Status']) ?>
+            ], ['prompt' => 'Select Marital Status', 'class' => 'form-select']) ?>
         </div>
         <div class="col-md-6">
             <?= $form->field($appApplicantModel, 'country_code', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-flag"></i></span>{input}</div>',
-            ])->textInput(['maxlength' => true]) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-flag'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
         </div>
     </div>
 
