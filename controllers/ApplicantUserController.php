@@ -12,6 +12,8 @@ use yii\web\NotFoundHttpException;
 use app\models\AppApplicant;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html; // Added for Html::errorSummary
+use yii\web\UploadedFile;
+use yii\helpers\FileHelper;
 
 class ApplicantUserController extends Controller
 {
@@ -141,10 +143,64 @@ class ApplicantUserController extends Controller
                 } else { $isValid = false; if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Applicant Specifics.'; }
             } elseif ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
-                if ($model->load($postData) && $model->validate()) {
+                // Try to get instance of the uploaded file
+                $model->profile_image_file = UploadedFile::getInstance($model, 'profile_image_file');
+
+                // Preserve old image if no new one is uploaded
+                $oldProfileImage = $model->profile_image; // Get current image before loading post data
+
+                if ($model->load($postData)) {
+                    if (!$model->profile_image_file) {
+                        // If no new file uploaded, retain the old image name, but only if it's not explicitly cleared
+                        // The $model->profile_image would be loaded from $postData if a hidden input was used.
+                        // Since we removed the hidden input for 'profile_image' from the form for this step,
+                        // we need to ensure it's not wiped if no new file is uploaded.
+                        // $model->profile_image will be null from $postData if no corresponding field is submitted.
+                        // We need to manually preserve it if $model->profile_image_file is null.
+                         $model->profile_image = $oldProfileImage;
+                    }
+
+                    if ($model->validate()) {
+                        $uploadedImageProcessed = false;
+                        if ($model->profile_image_file) {
+                            $uploadPath = Yii::getAlias('@webroot/img/profile/');
+                            if (!is_dir($uploadPath)) {
+                                FileHelper::createDirectory($uploadPath);
+                            }
+                            $uniqueFilename = Yii::$app->security->generateRandomString() . '.' . $model->profile_image_file->extension;
+                            $filePath = $uploadPath . $uniqueFilename;
+                            if ($model->profile_image_file->saveAs($filePath)) {
+                                // TODO: Delete old image if one existed and is different
+                                if ($oldProfileImage && $oldProfileImage !== $uniqueFilename && file_exists($uploadPath . $oldProfileImage)) {
+                                    @unlink($uploadPath . $oldProfileImage);
+                                }
+                                $model->profile_image = $uniqueFilename; // Update model attribute with new filename
+                                $uploadedImageProcessed = true;
+                            } else {
+                                $isValid = false;
+                                $model->addError('profile_image_file', 'Could not save the uploaded image.');
+                                if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Error saving profile image.';
+                            }
+                        }
+                        if ($isValid !== false) { // Check if previous block set $isValid to false
+                           $isValid = true;
+                        }
+                    } else {
+                        // Model validation failed (e.g. dimension error)
+                        $isValid = false;
+                        if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Account Settings (image or other fields).';
+                    }
+                } else {
+                     // model->load($postData) failed
+                    $isValid = false;
+                    if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Could not load account settings data.';
+                }
+
+                if ($isValid) {
+                    // Save attributes to session, including the potentially updated profile_image filename
                     $session->set($stepSessionKey, $model->getAttributes(['username', 'password', 'profile_image', 'change_pass']));
-                    $isValid = true;
-                } else { $isValid = false; if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Account Settings.'; }
+                }
+
             }
             // --- End Model Loading and Validation ---
 
