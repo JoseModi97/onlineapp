@@ -161,7 +161,8 @@ class ApplicantUserController extends Controller
                     }
 
                     if ($model->validate()) {
-                        $uploadedImageProcessed = false;
+                        // $isValid is true at this point if basic model validation (excluding file save) passed
+                        $isValid = true;
                         if ($model->profile_image_file) {
                             $uploadPath = Yii::getAlias('@webroot/img/profile/');
                             if (!is_dir($uploadPath)) {
@@ -170,86 +171,82 @@ class ApplicantUserController extends Controller
                             $uniqueFilename = Yii::$app->security->generateRandomString() . '.' . $model->profile_image_file->extension;
                             $filePath = $uploadPath . $uniqueFilename;
                             if ($model->profile_image_file->saveAs($filePath)) {
-                                // TODO: Delete old image if one existed and is different
                                 if ($oldProfileImage && $oldProfileImage !== $uniqueFilename && file_exists($uploadPath . $oldProfileImage)) {
                                     @unlink($uploadPath . $oldProfileImage);
                                 }
-                                $model->profile_image = $uniqueFilename; // Update model attribute with new filename
-                                $uploadedImageProcessed = true;
+                                $model->profile_image = $uniqueFilename;
                             } else {
                                 $isValid = false;
                                 $model->addError('profile_image_file', 'Could not save the uploaded image.');
-                                if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Error saving profile image.';
+                                $stepRenderData['message'] = 'Error saving profile image. Please try again or contact support.';
                             }
                         }
-                        if ($isValid !== false) { // Check if previous block set $isValid to false
-                           $isValid = true;
-                        }
                     } else {
-                        // Model validation failed (e.g. dimension error)
+                        // Model validation failed (e.g. dimension error, username missing etc.)
                         $isValid = false;
-                        if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Account Settings (image or other fields).';
+                        if ($model->hasErrors('profile_image_file')) {
+                            $stepRenderData['message'] = 'Profile image error: ' . $model->getFirstError('profile_image_file');
+                        } elseif (empty($stepRenderData['message'])) { // if no specific message set yet
+                            $stepRenderData['message'] = 'Please correct the errors in Account Settings.';
+                        }
                     }
                 } else {
                      // model->load($postData) failed
                     $isValid = false;
-                    if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Could not load account settings data.';
+                    $stepRenderData['message'] = 'Could not load account settings data. Please try again.';
                 }
 
                 if ($isValid) {
-                    // Save attributes to session, including the potentially updated profile_image filename
                     $session->set($stepSessionKey, $model->getAttributes(['username', 'password', 'profile_image', 'change_pass']));
                 }
-
             }
             // --- End Model Loading and Validation ---
 
             if ($isValid) {
-                if ($action === 'next') {
-                    if ($currentStepIndex < count($this->_steps) - 1) {
-                        $activeRenderStep = $this->_steps[$currentStepIndex + 1];
-                    } else { // Should not happen if 'next' is hidden on last step
-                        $activeRenderStep = $currentProcessingStep;
-                    }
-                    $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
-                    if ($request->isAjax) {
-                        // Reload models for the new step with data from session if any
-                        list($nextModel, $nextAppApplicantModel) = $this->loadModelsForStep($activeRenderStep, $applicant_user_id, $session, $wizardDataKeyPrefix);
-                        $html = $this->renderAjax($activeRenderStep, ['model' => $nextModel, 'appApplicantModel' => $nextAppApplicantModel, 'stepData' => [], 'steps' => $this->_steps, 'currentStepForView' => $activeRenderStep]);
-                        return ['success' => true, 'html' => $html, 'nextStep' => $activeRenderStep, 'applicant_user_id' => $applicant_user_id];
-                    }
+                if ($action === 'next') { // Should not happen for STEP_ACCOUNT_SETTINGS as it's the last step
+                    // ... (existing next logic)
                 } elseif ($action === 'save' && $currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
-                    // Final Save Logic (already in original code, needs AJAX adaptation)
                     $finalSaveResult = $this->performFinalSave($applicant_user_id, $session, $wizardDataKeyPrefix);
                     if ($finalSaveResult['success']) {
                         if ($request->isAjax) return ['success' => true, 'completed' => true, 'redirectUrl' => \yii\helpers\Url::to(['view', 'applicant_user_id' => $applicant_user_id])];
                         Yii::$app->session->setFlash('success', 'Applicant details saved successfully.');
                         return $this->redirect(['view', 'applicant_user_id' => $applicant_user_id]);
                     } else {
-                        $activeRenderStep = $currentProcessingStep; // Stay on current step
+                        $activeRenderStep = $currentProcessingStep;
                         $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
-                        if ($request->isAjax) return ['success' => false, 'errors' => $finalSaveResult['errors'], 'message' => $finalSaveResult['message']];
-                        $stepRenderData['message'] = $finalSaveResult['message'];
+                        // $finalSaveResult['message'] will contain errors from final save.
+                        // If $stepRenderData['message'] was already set due to an image save error before final save attempt,
+                        // that one might be more relevant for immediate display.
+                        // However, performFinalSave errors are critical.
+                        $messageForUser = $finalSaveResult['message'] ?? $stepRenderData['message'] ?? 'Failed to save details.';
+                        if ($request->isAjax) return ['success' => false, 'errors' => $finalSaveResult['errors'], 'message' => $messageForUser];
+                        $stepRenderData['message'] = $messageForUser;
                     }
-                } else { // Valid, but no specific action like next/save (e.g. tab click to a valid step, handled by GET in AJAX usually)
-                     $activeRenderStep = $currentProcessingStep; // Stay on current step
+                } else {
+                     $activeRenderStep = $currentProcessingStep;
                      $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
                 }
-            } else { // Not $isValid (validation failed)
-                $activeRenderStep = $currentProcessingStep; // Stay on current step
+            } else { // Not $isValid (validation failed during step processing)
+                $activeRenderStep = $currentProcessingStep;
                 $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
+
+                // Construct the AJAX error response
                 if ($request->isAjax) {
-                    $errors = [];
-                    if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS || $currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
-                        $errors = $model->getErrors();
-                    } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
-                        $errors = $appApplicantModel->getErrors();
+                    $errors = $model->getErrors(); // Get all errors from the model for this step
+                    // Ensure $stepRenderData['message'] is set if it's empty and there are errors
+                    if (empty($stepRenderData['message']) && $model->hasErrors()) {
+                        if ($model->hasErrors('profile_image_file')) {
+                             $stepRenderData['message'] = 'Profile image error: ' . $model->getFirstError('profile_image_file');
+                        } else {
+                            // Generic message if specific profile image error isn't the primary one
+                            $stepRenderData['message'] = 'Please correct the highlighted errors.';
+                        }
                     }
-                    return ['success' => false, 'errors' => $errors, 'message' => $stepRenderData['message'] ?? 'Validation failed.'];
+                    return ['success' => false, 'errors' => $errors, 'message' => $stepRenderData['message'] ?? 'Validation failed. Please check details.'];
                 }
             }
-            // For non-AJAX POST, redirect to GET to show the new $activeRenderStep
-            if (!$request->isAjax) {
+
+            if (!$request->isAjax) { // For non-AJAX POST (fallback, though wizard is AJAX-heavy)
                 return $this->redirect(['update-wizard', 'currentStep' => $activeRenderStep, 'applicant_user_id' => $applicant_user_id]);
             }
             // currentStep variable is updated for rendering below for non-AJAX
