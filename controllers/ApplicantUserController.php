@@ -232,17 +232,15 @@ class ApplicantUserController extends Controller
 
                 // Construct the AJAX error response
                 if ($request->isAjax) {
-                    $errors = $model->getErrors(); // Get all errors from the model for this step
-                    // Ensure $stepRenderData['message'] is set if it's empty and there are errors
-                    if (empty($stepRenderData['message']) && $model->hasErrors()) {
-                        if ($model->hasErrors('profile_image_file')) {
-                             $stepRenderData['message'] = 'Profile image error: ' . $model->getFirstError('profile_image_file');
-                        } else {
-                            // Generic message if specific profile image error isn't the primary one
-                            $stepRenderData['message'] = 'Please correct the highlighted errors.';
-                        }
+                    $errors = [];
+                    if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS || $currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
+                        $errors = $model->getErrors();
+                    } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
+                        $errors = $appApplicantModel->getErrors();
                     }
-                    return ['success' => false, 'errors' => $errors, 'message' => $stepRenderData['message'] ?? 'Validation failed. Please check details.'];
+                    // $stepRenderData['message'] would have been set by the individual step's validation failure logic
+                    // or the more specific setting within STEP_ACCOUNT_SETTINGS if $isValid was false there.
+                    return ['success' => false, 'errors' => $errors, 'message' => $stepRenderData['message'] ?? 'Validation failed.'];
                 }
             }
 
