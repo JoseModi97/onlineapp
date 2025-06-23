@@ -53,7 +53,8 @@ class AppApplicantUser extends \yii\db\ActiveRecord
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_STEP_PERSONAL_DETAILS] = ['surname', 'first_name', 'other_name', 'email_address', 'mobile_no'];
         // profile_image is the string filename, profile_image_file is the UploadedFile instance
-        $scenarios[self::SCENARIO_STEP_ACCOUNT_SETTINGS] = ['username', 'password', 'profile_image', 'profile_image_file', 'change_pass'];
+        // Removed 'password' and 'change_pass' from this scenario
+        $scenarios[self::SCENARIO_STEP_ACCOUNT_SETTINGS] = ['username', 'profile_image', 'profile_image_file'];
         return $scenarios;
     }
 
@@ -65,11 +66,11 @@ class AppApplicantUser extends \yii\db\ActiveRecord
         return [
             [['surname', 'other_name', 'email_address', 'mobile_no', 'password', 'activation_code', 'salt', 'status', 'date_registered', 'reg_token', 'profile_image', 'change_pass', 'username', 'first_name'], 'default', 'value' => null],
             [['date_registered'], 'safe'],
-            [['change_pass'], 'string'],
+            [['change_pass'], 'string'], // General rule for 'change_pass' can remain if used elsewhere
             [['surname', 'email_address', 'activation_code', 'salt', 'reg_token'], 'string', 'max' => 100],
             [['other_name'], 'string', 'max' => 150],
             [['mobile_no', 'status'], 'string', 'max' => 30],
-            [['password'], 'string', 'max' => 200],
+            [['password'], 'string', 'max' => 200], // General rule for 'password' can remain
             [['profile_image', 'first_name', 'username'], 'string', 'max' => 255], // profile_image stores filename
             [['username'], 'unique'],
             [['applicant_user_id'], 'exist', 'skipOnError' => true, 'targetClass' => AppApplicant::class, 'targetAttribute' => ['applicant_user_id' => 'applicant_user_id']],
@@ -78,11 +79,13 @@ class AppApplicantUser extends \yii\db\ActiveRecord
             [['surname', 'first_name', 'email_address', 'mobile_no'], 'required', 'on' => self::SCENARIO_STEP_PERSONAL_DETAILS],
 
             [['username'], 'required', 'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS],
+            /* // Removed conditional password requirement for SCENARIO_STEP_ACCOUNT_SETTINGS
             ['password', 'required', 'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS, 'when' => function ($model) {
                 return $model->isNewRecord || $model->change_pass;
             }, 'whenClient' => "function (attribute, value) {
                 return $('#appapplicantuser-change_pass').is(':checked') || " . ($this->isNewRecord ? 'true' : 'false') . ";
             }"],
+            */
 
             // Profile image file validation
             [['profile_image_file'], 'file',
