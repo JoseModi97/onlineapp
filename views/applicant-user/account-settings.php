@@ -11,27 +11,50 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin([
         'id' => 'account-settings-form',
+        'options' => ['enctype' => 'multipart/form-data'] // Important for file uploads
     ]); ?>
 
-    <?= $form->field($model, 'username')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'password')->passwordInput(['maxlength' => true, 'autocomplete' => 'new-password', 'placeholder' => ($model->isNewRecord ? '' : 'Leave blank if not changing')]) ?>
-
-    <?= $form->field($model, 'change_pass')->checkbox(['label' => 'Set/Change Password']) ?>
-
-    <div class="mb-3">
-        <label for="profile-image-input" class="form-label">Profile Image (PNG/JPG, 100x100px)</label>
-        <input type="file" id="profile-image-input" name="AppApplicantUser[profile_image_file]" class="form-control" accept=".png,.jpg,.jpeg">
-        <div id="profile-image-error" class="invalid-feedback" style="display: none;"></div>
-        <div class="mt-2">
-            <img id="profile-image-preview" src="<?= $model->profile_image ? Yii::getAlias('@web/img/profile/' . $model->profile_image) : '#' ?>" alt="Profile Preview" style="width: 100px; height: 100px; border: 1px solid #ddd; display: <?= $model->profile_image ? 'block' : 'none' ?>;">
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'username', [
+                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-user-circle"></i></span>{input}</div>',
+            ])->textInput(['maxlength' => true]) ?>
         </div>
     </div>
 
-    <?php // Hidden field to store the actual image filename for the model, if needed, or handle directly in controller
-    // For now, the controller will handle the 'profile_image_file' and update 'profile_image' attribute.
-    // echo $form->field($model, 'profile_image')->hiddenInput()->label(false);
-    ?>
+    <div class="row">
+        <div class="col-md-6">
+            <?= $form->field($model, 'password', [
+                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-lock"></i></span>{input}</div>',
+            ])->passwordInput(['maxlength' => true, 'autocomplete' => 'new-password', 'placeholder' => ($model->isNewRecord || $model->change_pass ? '' : 'Leave blank if not changing')]) ?>
+
+            <?= $form->field($model, 'change_pass', ['options' => ['class' => 'mt-2']])->checkbox(['label' => 'Set/Change Password']) ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <?php
+            // For file input, input group styling is a bit different.
+            // We'll customize the label and put the icon there or use a standard file input.
+            // The `profile_image_file` attribute is on the model for the UploadedFile instance.
+            // The `profile_image` attribute stores the filename string.
+            ?>
+            <?= $form->field($model, 'profile_image_file', [
+                'labelOptions' => ['class' => 'form-label'],
+                 // 'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-image"></i></span>{input}</div>' // This can look clunky for file inputs
+            ])->fileInput([
+                'id' => 'profile-image-input', // Keep existing ID for JS
+                'class' => 'form-control',
+                'accept' => '.png,.jpg,.jpeg'
+            ])->label('<i class="fas fa-image"></i> Profile Image (PNG/JPG, 100x100px)') ?>
+
+            <div id="profile-image-error" class="invalid-feedback" style="display: none;"></div>
+            <div class="mt-2">
+                <img id="profile-image-preview" src="<?= $model->profile_image ? Yii::getAlias('@web/img/profile/' . $model->profile_image) : '#' ?>" alt="Profile Preview" style="width: 100px; height: 100px; border: 1px solid #ddd; display: <?= $model->profile_image ? 'block' : 'none' ?>;">
+            </div>
+        </div>
+    </div>
 
     <?php // Navigation buttons are now handled by the main update-wizard.php view and AJAX JS ?>
     <div class="form-group visually-hidden">
