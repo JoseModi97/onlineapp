@@ -17,18 +17,18 @@ use yii\widgets\ActiveForm;
     <div class="row">
         <div class="col-md-6">
             <?= $form->field($model, 'username', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-user-circle"></i></span>{input}</div>',
-            ])->textInput(['maxlength' => true]) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-user-circle'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <?= $form->field($model, 'password', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-lock"></i></span>{input}</div>',
-            ])->passwordInput(['maxlength' => true, 'autocomplete' => 'new-password', 'placeholder' => ($model->isNewRecord || $model->change_pass ? '' : 'Leave blank if not changing')]) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-lock'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->passwordInput(['maxlength' => true, 'autocomplete' => 'new-password', 'placeholder' => ($model->isNewRecord || $model->change_pass ? '' : 'Leave blank if not changing'), 'class' => 'form-control']) ?>
 
-            <?= $form->field($model, 'change_pass', ['options' => ['class' => 'mt-2']])->checkbox(['label' => 'Set/Change Password']) ?>
+            <?= $form->field($model, 'change_pass', ['options' => ['class' => 'mt-2 form-check'] ])->checkbox(['label' => 'Set/Change Password', 'class' => 'form-check-input']) ?>
         </div>
     </div>
 

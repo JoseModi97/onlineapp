@@ -18,34 +18,34 @@ use yii\widgets\ActiveForm;
     <div class="row">
         <div class="col-md-6">
             <?= $form->field($model, 'surname', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-user"></i></span>{input}</div>',
-            ])->textInput(['maxlength' => true]) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-user'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
         </div>
         <div class="col-md-6">
             <?= $form->field($model, 'first_name', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-user"></i></span>{input}</div>',
-            ])->textInput(['maxlength' => true]) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-user'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <?= $form->field($model, 'other_name', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-user"></i></span>{input}</div>',
-            ])->textInput(['maxlength' => true]) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-user'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
         </div>
         <div class="col-md-6">
             <?= $form->field($model, 'email_address', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-envelope"></i></span>{input}</div>',
-            ])->textInput(['maxlength' => true, 'type' => 'email']) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-envelope'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->textInput(['maxlength' => true, 'type' => 'email', 'class' => 'form-control']) ?>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <?= $form->field($model, 'mobile_no', [
-                'inputTemplate' => '<div class="input-group"><span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>{input}</div>',
-            ])->textInput(['maxlength' => true]) ?>
+                'template' => "{label}\n<div class='input-group'><span class='input-group-text'><i class='fas fa-mobile-alt'></i></span>{input}</div>\n{hint}\n{error}",
+            ])->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
         </div>
     </div>
 
