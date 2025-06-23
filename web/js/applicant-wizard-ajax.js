@@ -92,19 +92,43 @@ $(document).ready(function() {
 
         } else { // AJAX call success=false (validation errors or other server error)
             if (response.errors) {
-                // Clear previous errors
-                $('.form-control').removeClass('is-invalid');
-                $('.invalid-feedback').remove();
+                // Clear previous errors more carefully
+                contentArea.find('.form-control.is-invalid').removeClass('is-invalid');
+                contentArea.find('.invalid-feedback').each(function() { // Clear text and hide, but don't remove structure for specific divs like #profile-image-error
+                    if ($(this).attr('id') === 'profile-image-error') {
+                        $(this).html('').hide();
+                    } else {
+                        // For other generic feedback blocks that might be added/removed by Yii/Bootstrap
+                        $(this).remove();
+                    }
+                });
+                 // Ensure our specific profile image error div is hidden if it wasn't caught above (e.g. if it had no text)
+                contentArea.find('#profile-image-error').html('').hide();
+
+
                 $('#wizard-general-error').hide().text('');
 
                 $.each(response.errors, function(field, messages) {
-                    var input = contentArea.find('[name*="[' + field + ']"], [name="' + field + '"]'); // Handles ActiveForm naming
-                    input.addClass('is-invalid');
-                    // Add error message after the input
                     var errorMsg = messages.join('<br>');
-                    input.closest('.mb-3, .form-group').append('<div class="invalid-feedback">' + errorMsg + '</div>');
+                    if (field === 'profile_image_file') {
+                        var profileImageInput = contentArea.find('#profile-image-input');
+                        var profileImageErrorDiv = contentArea.find('#profile-image-error');
+
+                        profileImageInput.addClass('is-invalid');
+                        profileImageErrorDiv.html(errorMsg).show();
+                    } else {
+                        var input = contentArea.find('[name*="[' + field + ']"], [name="' + field + '"]');
+                        input.addClass('is-invalid');
+
+                        // Remove old generic feedback for this field before adding new one
+                        input.closest('.mb-3, .form-group').find('.invalid-feedback:not(#profile-image-error)').remove();
+                        input.closest('.mb-3, .form-group').append('<div class="invalid-feedback">' + errorMsg + '</div>');
+                        // Make sure it's visible, Yii might add it hidden
+                        input.closest('.mb-3, .form-group').find('.invalid-feedback').show();
+                    }
                 });
-                 if (response.message) {
+
+                if (response.message) {
                     $('#wizard-general-error').text("Input Error: " + response.message).show();
                 } else {
                     $('#wizard-general-error').text("Input Error: Please correct the highlighted fields below.").show();
