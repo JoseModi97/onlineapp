@@ -4,13 +4,13 @@ use app\models\AppApplicantEducation;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\ActionColumn;
-use yii\grid\GridView;
+use kartik\grid\GridView;
 
 /** @var yii\web\View $this */
 /** @var app\models\search\ApplicantEducationSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'App Applicant Educations';
+$this->title = 'Applicant Educations';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="app-applicant-education-index">
@@ -18,14 +18,25 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Create App Applicant Education', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Create Applicant Education', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+    <?php // echo $this->render('_search', ['model' => $searchModel]); 
+    ?>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+        'export' => [
+            'fontAwesome' => true
+        ],
+        'exportConfig' => [
+            GridView::CSV => ['label' => 'Export as CSV', 'filename' => 'applicant-education-'.date('Y-m-d')],
+            GridView::HTML => ['label' => 'Export as HTML', 'filename' => 'applicant-education-'.date('Y-m-d')],
+            GridView::EXCEL => ['label' => 'Export as EXCEL', 'filename' => 'applicant-education-'.date('Y-m-d')],
+            GridView::TEXT => ['label' => 'Export as TEXT', 'filename' => 'applicant-education-'.date('Y-m-d')],
+            GridView::JSON => ['label' => 'Export as JSON', 'filename' => 'applicant-education-'.date('Y-m-d')],
+        ],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
@@ -50,7 +61,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'class' => ActionColumn::className(),
                 'urlCreator' => function ($action, AppApplicantEducation $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'education_id' => $model->education_id]);
-                 }
+                }
             ],
         ],
     ]); ?>
