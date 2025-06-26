@@ -4,6 +4,7 @@ use app\models\AppApplicant;
 use app\models\AppApplicantWorkExp;
 use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
+use yii\jui\JuiAsset;
 
 /** @var yii\web\View $this */
 /** @var yii\web\View $this */
@@ -17,6 +18,8 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 // The lines fetching AppApplicant and AppApplicantWorkExp directly in the view have been removed.
 // This data is now expected to be passed from the ApplicantUserController::actionUpdateWizard()
 // into the $existingWorkExperiences variable.
+
+JuiAsset::register($this);
 ?>
 
 <div class="applicant-work-exp-form">
@@ -39,10 +42,16 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 
     <div class="row">
         <div class="col-md-6">
-            <?= $form->field($workExpModel, 'year_from')->textInput(['type' => 'date']) ?>
+            <?= $form->field($workExpModel, 'year_from')->widget(\yii\jui\DatePicker::class, [
+                'options' => ['class' => 'form-control', 'type' => 'text'],
+                'dateFormat' => 'yyyy-MM-dd',
+            ]) ?>
         </div>
         <div class="col-md-6">
-            <?= $form->field($workExpModel, 'year_to')->textInput(['type' => 'date']) ?>
+            <?= $form->field($workExpModel, 'year_to')->widget(\yii\jui\DatePicker::class, [
+                'options' => ['class' => 'form-control', 'type' => 'text'],
+                'dateFormat' => 'yyyy-MM-dd',
+            ]) ?>
         </div>
     </div>
 
