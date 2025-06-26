@@ -3,8 +3,6 @@
 namespace app\models;
 
 use Yii;
-use app\models\AppApplicant; // Added
-use app\models\AppEducationSystem; // Added
 
 /**
  * This is the model class for table "onlineapp.app_applicant_education".
@@ -85,25 +83,5 @@ class AppApplicantEducation extends \yii\db\ActiveRecord
             'file_name' => 'File Name',
             'cert_source' => 'Cert Source',
         ];
-    }
-
-    /**
-     * Gets query for [[Applicant]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getApplicant()
-    {
-        return $this->hasOne(AppApplicant::class, ['applicant_id' => 'applicant_id']);
-    }
-
-    /**
-     * Gets query for [[EduSystem]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getEduSystem()
-    {
-        return $this->hasOne(AppEducationSystem::class, ['edu_system_code' => 'edu_system_code']);
     }
 }

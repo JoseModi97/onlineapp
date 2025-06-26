@@ -7,7 +7,6 @@ use app\models\search\ApplicantEducationSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-use app\components\AccessControlBehavior;
 
 /**
  * ApplicantEducationController implements the CRUD actions for AppApplicantEducation model.
@@ -22,9 +21,6 @@ class ApplicantEducationController extends Controller
         return array_merge(
             parent::behaviors(),
             [
-                'access' => [
-                    'class' => AccessControlBehavior::class,
-                ],
                 'verbs' => [
                     'class' => VerbFilter::className(),
                     'actions' => [
