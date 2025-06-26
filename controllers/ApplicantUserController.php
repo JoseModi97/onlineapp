@@ -333,6 +333,17 @@ class ApplicantUserController extends Controller
                                     'firstName' => $personalDetailsFromSession['first_name'] ?? '',
                                     'surname' => $personalDetailsFromSession['surname'] ?? '',
                                 ];
+                                // Fetch existing work experiences for display
+                                if ($applicant_user_id) {
+                                    $appUser = AppApplicantUser::findOne($applicant_user_id);
+                                    if ($appUser && $appUser->appApplicant) {
+                                        $jsonResponse['existingWorkExperiences'] = AppApplicantWorkExp::find()
+                                            ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
+                                            ->orderBy(['year_from' => SORT_DESC]) // Optional: order them
+                                            ->asArray() // Pass as array to view
+                                            ->all();
+                                    }
+                                }
                             }
                             return $jsonResponse;
 
@@ -450,6 +461,17 @@ class ApplicantUserController extends Controller
                     'firstName' => $personalDetailsFromSession['first_name'] ?? '',
                     'surname' => $personalDetailsFromSession['surname'] ?? '',
                 ];
+                // Fetch existing work experiences for display
+                if ($applicant_user_id) {
+                    $appUser = AppApplicantUser::findOne($applicant_user_id);
+                    if ($appUser && $appUser->appApplicant) {
+                        $jsonResponse['existingWorkExperiences'] = AppApplicantWorkExp::find()
+                            ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
+                            ->orderBy(['year_from' => SORT_DESC]) // Optional: order them
+                            ->asArray() // Pass as array to view
+                            ->all();
+                    }
+                }
             }
             return $jsonResponse;
 
@@ -497,7 +519,20 @@ class ApplicantUserController extends Controller
             'stepData' => $stepRenderData,
             'steps' => $this->_steps,
             'personalNamesForJs' => $personalNamesForJs, // Pass names for JS
-        ]);
+        ];
+
+        // For initial page load, if the current step is work experience, fetch existing experiences
+        if ($currentStep === self::STEP_WORK_EXPERIENCE && $applicant_user_id) {
+            $appUser = AppApplicantUser::findOne($applicant_user_id);
+            if ($appUser && $appUser->appApplicant) {
+                $renderParams['existingWorkExperiences'] = AppApplicantWorkExp::find()
+                    ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
+                    ->orderBy(['year_from' => SORT_DESC])
+                    ->asArray()
+                    ->all();
+            }
+        }
+        return $this->render('update-wizard', $renderParams);
     }
 
     protected function loadModelsForStep($step, $applicant_user_id, $session, $wizardDataKeyPrefix, $existingModel = null, $existingAppApplicantModel = null)
