@@ -170,12 +170,41 @@ class ApplicantUserController extends Controller
                     if (empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Personal Details.';
                 }
             } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
+                // Initialize $appApplicantModel for the current step
+                if ($applicant_user_id && $model && !$model->isNewRecord) {
+                    // $model is AppApplicantUser, already loaded or re-fetched if $applicant_user_id was present
+                    $appApplicantModel = $model->getAppApplicant()->one();
+                    if (!$appApplicantModel) {
+                        $appApplicantModel = new AppApplicant();
+                        $appApplicantModel->applicant_user_id = $model->applicant_user_id; // Link to existing AppApplicantUser
+                    }
+                } else {
+                    // This case means $applicant_user_id is not yet known (e.g. first step not completed, which shouldn't allow reaching this step)
+                    // or $model is new (its ID isn't set yet).
+                    $appApplicantModel = new AppApplicant();
+                    if ($applicant_user_id) { // If an overall $applicant_user_id is known (e.g. from session)
+                        $appApplicantModel->applicant_user_id = $applicant_user_id;
+                    }
+                }
+
+                // Ensure FK is set if $model exists and has an ID, and $appApplicantModel is an object but not linked
+                if ($appApplicantModel && $model && !$model->isNewRecord && !$appApplicantModel->applicant_user_id) {
+                    $appApplicantModel->applicant_user_id = $model->applicant_user_id;
+                }
+
                 if ($appApplicantModel->load($postData) && $appApplicantModel->validate()) {
                     $session->set($stepSessionKey, $appApplicantModel->getAttributes());
                     $isValid = true;
                 } else {
                     $isValid = false;
-                    if (empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Applicant Specifics.';
+                    if (!$appApplicantModel) { // Should not happen with the above initialization
+                        Yii::error("AppApplicantModel was unexpectedly null before validation for STEP_APPLICANT_SPECIFICS.");
+                        $stepRenderData['message'] = 'Critical error: Applicant details model not available. Please contact support.';
+                    } else {
+                        // Set a general message, and Html::errorSummary will be more specific if $appApplicantModel is available
+                        $summary = Html::errorSummary($appApplicantModel);
+                        $stepRenderData['message'] = 'Please correct errors in Applicant Specifics. ' . $summary;
+                    }
                 }
             } elseif ($currentProcessingStep === self::STEP_WORK_EXPERIENCE) {
                 // Initialize $workExpModel for this step.
