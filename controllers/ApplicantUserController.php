@@ -10,6 +10,7 @@ use app\components\AccessControlBehavior;
 use app\models\search\AppApplicantUserSearch;
 use yii\web\NotFoundHttpException;
 use app\models\AppApplicant;
+use app\models\AppApplicantEducation;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html; // Added for Html::errorSummary
 use yii\web\UploadedFile;
@@ -74,7 +75,7 @@ class ApplicantUserController extends Controller
         if ($currentStep === null) {
             $currentStep = $session->get($wizardDataKeyPrefix . 'current_step', self::STEP_PERSONAL_DETAILS);
         }
-         if (!in_array($currentStep, $this->_steps)) {
+        if (!in_array($currentStep, $this->_steps)) {
             $currentStep = self::STEP_PERSONAL_DETAILS;
         }
 
@@ -84,14 +85,14 @@ class ApplicantUserController extends Controller
         $educationModel = new AppApplicantEducation();
 
         if ($applicant_user_id && $appApplicantModel->isNewRecord && $model->appApplicant && $model->appApplicant->applicant_id) {
-             $appApplicantModel = $model->appApplicant; // If $model has a linked AppApplicant, use it
+            $appApplicantModel = $model->appApplicant; // If $model has a linked AppApplicant, use it
         } elseif ($applicant_user_id && $appApplicantModel->isNewRecord && $model->applicant_user_id) {
             // If AppApplicant is still new, try to load it or set its applicant_user_id for creation
             $relatedAppApplicant = AppApplicant::findOne(['applicant_id' => $model->applicant_user_id]);
             if ($relatedAppApplicant) {
                 $appApplicantModel = $relatedAppApplicant;
             } else {
-                 $appApplicantModel->applicant_user_id = $model->applicant_user_id;
+                $appApplicantModel->applicant_user_id = $model->applicant_user_id;
             }
         }
         // Now, specifically for the education step, try to load existing or prepare new
@@ -128,7 +129,9 @@ class ApplicantUserController extends Controller
             $isValid = false;
 
             if (isset($postData['wizard_cancel'])) {
-                foreach ($this->_steps as $s) { $session->remove($wizardDataKeyPrefix . 'data_step_' . $s); }
+                foreach ($this->_steps as $s) {
+                    $session->remove($wizardDataKeyPrefix . 'data_step_' . $s);
+                }
                 $session->remove($wizardDataKeyPrefix . 'applicant_user_id');
                 $session->remove($wizardDataKeyPrefix . 'current_step');
                 if ($request->isAjax) return ['success' => true, 'cancelled' => true, 'redirectUrl' => \yii\helpers\Url::to(['index'])];
@@ -151,16 +154,30 @@ class ApplicantUserController extends Controller
                             $applicant_user_id = $model->applicant_user_id;
                             $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
                             $appApplicantModel->applicant_user_id = $applicant_user_id;
-                        } else { $isValid = false; $stepRenderData['message'] = 'Failed to save personal details.'; Yii::error($model->errors); }
+                        } else {
+                            $isValid = false;
+                            $stepRenderData['message'] = 'Failed to save personal details.';
+                            Yii::error($model->errors);
+                        }
                     } else {
-                        if (!$model->save(false)) { $isValid = false; $stepRenderData['message'] = 'Failed to update personal details.'; Yii::error($model->errors); }
+                        if (!$model->save(false)) {
+                            $isValid = false;
+                            $stepRenderData['message'] = 'Failed to update personal details.';
+                            Yii::error($model->errors);
+                        }
                     }
-                } else { $isValid = false; if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Personal Details.'; }
+                } else {
+                    $isValid = false;
+                    if (empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Personal Details.';
+                }
             } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
                 if ($appApplicantModel->load($postData) && $appApplicantModel->validate()) {
                     $session->set($stepSessionKey, $appApplicantModel->getAttributes());
                     $isValid = true;
-                } else { $isValid = false; if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Applicant Specifics.'; }
+                } else {
+                    $isValid = false;
+                    if (empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Applicant Specifics.';
+                }
             } elseif ($currentProcessingStep === self::STEP_EDUCATION_DETAILS) {
                 // Load existing or new education model for the step
                 // $educationModel is already initialized/loaded at the beginning of actionUpdateWizard
@@ -192,8 +209,8 @@ class ApplicantUserController extends Controller
                     if ($educationModelToProcess->load($postData)) {
                         if (!$educationModelToProcess->education_certificate_file && !$educationModelToProcess->isNewRecord) {
                             // Preserve old file if no new one is uploaded and it's an existing record
-                             $educationModelToProcess->file_name = $postData['AppApplicantEducation']['file_name_hidden'] ?? $oldCertificateFile;
-                             // Assuming 'file_name_hidden' stores the current file name if no new upload
+                            $educationModelToProcess->file_name = $postData['AppApplicantEducation']['file_name_hidden'] ?? $oldCertificateFile;
+                            // Assuming 'file_name_hidden' stores the current file name if no new upload
                         }
 
                         if ($educationModelToProcess->validate()) {
@@ -241,7 +258,7 @@ class ApplicantUserController extends Controller
 
                 if ($model->load($postData)) {
                     if (!$model->profile_image_file) {
-                         $model->profile_image = $oldProfileImage;
+                        $model->profile_image = $oldProfileImage;
                     }
                     if ($model->validate()) {
                         $isValid = true;
@@ -299,8 +316,8 @@ class ApplicantUserController extends Controller
 
                             $stepViewFilePath = Yii::getAlias('@app/views/applicant-user/' . $activeRenderStep . '.php');
                             if (!file_exists($stepViewFilePath)) {
-                                 Yii::error("Wizard step view file not found when preparing next step: {$stepViewFilePath} for step key {$activeRenderStep}");
-                                 return ['success' => false, 'message' => "Error: The content for step '".Html::encode($activeRenderStep)."' is unavailable (view file missing)."];
+                                Yii::error("Wizard step view file not found when preparing next step: {$stepViewFilePath} for step key {$activeRenderStep}");
+                                return ['success' => false, 'message' => "Error: The content for step '" . Html::encode($activeRenderStep) . "' is unavailable (view file missing)."];
                             }
 
                             $renderParams = [
@@ -316,10 +333,9 @@ class ApplicantUserController extends Controller
 
                             $html = $this->renderAjax($activeRenderStep, $renderParams);
                             return ['success' => true, 'html' => $html, 'nextStep' => $activeRenderStep, 'applicant_user_id' => $applicant_user_id];
-
                         } catch (NotFoundHttpException $e) {
                             Yii::error("NotFoundHttpException while preparing next step '{$activeRenderStep}' for applicant ID '{$applicant_user_id}': " . $e->getMessage());
-                            return ['success' => false, 'message' => "Error: Could not load data for the next step. The requested applicant record (ID: ".Html::encode($applicant_user_id).") may not exist. Please restart the wizard."];
+                            return ['success' => false, 'message' => "Error: Could not load data for the next step. The requested applicant record (ID: " . Html::encode($applicant_user_id) . ") may not exist. Please restart the wizard."];
                         } catch (\Throwable $e) {
                             Yii::error("General exception while preparing next step '{$activeRenderStep}' for applicant ID '{$applicant_user_id}': " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
                             return ['success' => false, 'message' => "An unexpected error occurred while preparing the next step ('" . Html::encode($activeRenderStep) . "'). Please try again or contact support."];
@@ -349,8 +365,8 @@ class ApplicantUserController extends Controller
                         $stepRenderData['message'] = $messageForUser;
                     }
                 } else {
-                     $activeRenderStep = $currentProcessingStep;
-                     $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
+                    $activeRenderStep = $currentProcessingStep;
+                    $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
                 }
             } else {
                 $activeRenderStep = $currentProcessingStep;
@@ -379,13 +395,12 @@ class ApplicantUserController extends Controller
                 return $this->redirect(['update-wizard', 'currentStep' => $activeRenderStep, 'applicant_user_id' => $applicant_user_id]);
             }
             $currentStep = $activeRenderStep;
-
         } elseif ($request->isAjax && $request->isGet) {
             $targetStep = $requestedStepInUrl ?? $currentStep;
             if (!in_array($targetStep, $this->_steps)) $targetStep = self::STEP_PERSONAL_DETAILS;
 
             if (!$applicant_user_id && $targetStep !== self::STEP_PERSONAL_DETAILS) {
-                 return ['success' => false, 'message' => 'Please complete the first step.', 'redirectToStep' => self::STEP_PERSONAL_DETAILS];
+                return ['success' => false, 'message' => 'Please complete the first step.', 'redirectToStep' => self::STEP_PERSONAL_DETAILS];
             }
 
             $session->set($wizardDataKeyPrefix . 'current_step', $targetStep);
@@ -439,7 +454,7 @@ class ApplicantUserController extends Controller
         $educationModel = $existingEducationModel; // Use existing if passed
 
         if ($applicant_user_id && $appApplicantModel->isNewRecord && $model->appApplicant && $model->appApplicant->applicant_id) {
-             $appApplicantModel = $model->appApplicant;
+            $appApplicantModel = $model->appApplicant;
         } elseif ($applicant_user_id && $appApplicantModel->isNewRecord && $model->applicant_user_id) {
             // Try to load AppApplicant if not properly linked initially
             $relatedAppApplicant = AppApplicant::findOne(['applicant_id' => $model->applicant_user_id]);
@@ -465,7 +480,7 @@ class ApplicantUserController extends Controller
             }
             // Ensure applicant_id is set on the education model if AppApplicant model is available
             if ($educationModel && $educationModel->isNewRecord && $appApplicantModel && $appApplicantModel->applicant_id) {
-                 $educationModel->applicant_id = $appApplicantModel->applicant_id;
+                $educationModel->applicant_id = $appApplicantModel->applicant_id;
             }
         }
 
@@ -550,7 +565,9 @@ class ApplicantUserController extends Controller
                     }
                     // If all saves are successful
                     $transaction->commit();
-                    foreach ($this->_steps as $s) { $session->remove($wizardDataKeyPrefix . 'data_step_' . $s); }
+                    foreach ($this->_steps as $s) {
+                        $session->remove($wizardDataKeyPrefix . 'data_step_' . $s);
+                    }
                     $session->remove($wizardDataKeyPrefix . 'applicant_user_id');
                     $session->remove($wizardDataKeyPrefix . 'current_step');
                     return ['success' => true];
