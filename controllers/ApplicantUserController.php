@@ -166,7 +166,8 @@ class ApplicantUserController extends Controller
                         $isValid = true;
                     } else {
                         $isValid = false;
-                        $stepRenderData['message'] = 'Please correct errors in Work Experience. ' . Html::errorSummary($workExpModel);
+                        // Cleaner error message, Html::errorSummary is self-explanatory
+                        $stepRenderData['message'] = Html::errorSummary($workExpModel);
                     }
                 } else {
                     $isValid = false;
