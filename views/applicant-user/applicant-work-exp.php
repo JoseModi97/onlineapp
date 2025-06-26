@@ -53,6 +53,10 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
     <?php // Hidden input to identify the current step being submitted, handled by JS now
     // echo Html::hiddenInput('current_step_validated', $currentStepForView); ?>
 
+    <div class="form-group mt-3">
+        <?= Html::button('Skip this step', ['class' => 'btn btn-link', 'id' => 'wizard-skip-work-exp-btn']) ?>
+    </div>
+
     <?php ActiveForm::end(); ?>
 
 </div>

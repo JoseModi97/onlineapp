@@ -132,8 +132,14 @@ class ApplicantUserController extends Controller
 
             $currentStepIndex = array_search($currentProcessingStep, $this->_steps);
             $action = '';
+            $isSkippingStep = false; // Flag for skip action
+
             if (isset($postData['wizard_next'])) $action = 'next';
             elseif (isset($postData['wizard_save'])) $action = 'save';
+            elseif (isset($postData['wizard_skip_step'])) {
+                $action = 'next'; // Skip behaves like 'next' in terms of progression
+                $isSkippingStep = true;
+            }
 
             if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
@@ -159,19 +165,25 @@ class ApplicantUserController extends Controller
                 // Initialize $workExpModel for this step.
                 // It's okay if $applicant_user_id is not yet final, or $appApplicantModel->applicant_id is not yet set.
                 // We are saving to session. Linkage will happen in performFinalSave.
-                $workExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
-                if ($workExpModel->load($postData)) {
-                    if ($workExpModel->validate()) {
-                        $session->set($stepSessionKey, $workExpModel->getAttributes());
-                        $isValid = true;
+                if ($isSkippingStep) {
+                    // If skipping, mark as valid and clear any previous session data for this step
+                    $session->remove($stepSessionKey); // Remove data for this step from session
+                    $isValid = true;
+                } else {
+                    $workExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
+                    if ($workExpModel->load($postData)) {
+                        if ($workExpModel->validate()) {
+                            $session->set($stepSessionKey, $workExpModel->getAttributes());
+                            $isValid = true;
+                        } else {
+                            $isValid = false;
+                            // Cleaner error message, Html::errorSummary is self-explanatory
+                            $stepRenderData['message'] = Html::errorSummary($workExpModel);
+                        }
                     } else {
                         $isValid = false;
-                        // Cleaner error message, Html::errorSummary is self-explanatory
-                        $stepRenderData['message'] = Html::errorSummary($workExpModel);
+                        $stepRenderData['message'] = 'Could not load work experience data.';
                     }
-                } else {
-                    $isValid = false;
-                    $stepRenderData['message'] = 'Could not load work experience data.';
                 }
             } elseif ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;

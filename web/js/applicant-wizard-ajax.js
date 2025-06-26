@@ -252,6 +252,19 @@ $(document).ready(function() {
         makeAjaxRequest(targetStepKey, 'GET', null);
     });
 
+    // For 'Skip Work Experience' button (event delegation on contentArea)
+    contentArea.on('click', '#wizard-skip-work-exp-btn', function(e) {
+        e.preventDefault();
+        var currentActiveStep = 'applicant-work-exp'; // This button is specific to this step
+        var formData = new FormData(); // Create new FormData for the skip action
+        formData.append('wizard_skip_step', '1');
+        // Add applicant_user_id if available, though controller might also get it from session/URL
+        if (currentApplicantUserId) {
+            formData.append('applicant_user_id', currentApplicantUserId);
+        }
+        makeAjaxRequest(currentActiveStep, 'POST', formData);
+    });
+
     // Handle browser back/forward buttons
     $(window).on('popstate', function(event) {
         var state = event.originalEvent.state;
