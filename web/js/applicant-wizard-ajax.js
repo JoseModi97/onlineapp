@@ -46,7 +46,7 @@ $(document).ready(function() {
         wizardContainer.find('#wizard-next-btn').toggle(!isLastStep);
         wizardContainer.find('#wizard-save-btn').toggle(isLastStep); // Typically shown only on the last step
         wizardContainer.find('#wizard-previous-btn').toggle(!isFirstStep);
-        // Removed Skip button toggle: wizardContainer.find('#wizard-skip-btn').toggle(activeStepKey === 'applicant-work-exp');
+        wizardContainer.find('#wizard-skip-btn').toggle(activeStepKey === 'applicant-work-exp' && !isLastStep); // Show skip only on work-exp and if it's not the last step
 
 
         // Update data attribute for applicant_user_id on the container if it changed
@@ -267,6 +267,18 @@ $(document).ready(function() {
         e.preventDefault();
         var targetStepKey = $(this).data('step');
         makeAjaxRequest(targetStepKey, 'GET', null);
+    });
+
+    // For 'Skip' button
+    wizardContainer.on('click', '#wizard-skip-btn', function(e) {
+        e.preventDefault();
+        var stepsFromServer = wizardContainer.data('steps-array');
+        var currentActiveStepKey = navTabsContainer.find('a.nav-link.active').data('step');
+        var currentIdx = stepsFromServer.indexOf(currentActiveStepKey);
+        if (currentIdx < stepsFromServer.length - 1) {
+            var nextStepKey = stepsFromServer[currentIdx + 1];
+            makeAjaxRequest(nextStepKey, 'GET', null); // Navigate to next step without saving data
+        }
     });
 
     // Handle browser back/forward buttons

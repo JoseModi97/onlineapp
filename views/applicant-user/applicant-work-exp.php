@@ -2,6 +2,7 @@
 
 use app\models\AppApplicant;
 use app\models\AppApplicantWorkExp;
+use yii\jui\DatePicker;
 use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 
@@ -39,10 +40,35 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 
     <div class="row">
         <div class="col-md-6">
-            <?= $form->field($workExpModel, 'year_from')->textInput(['type' => 'date']) ?>
+            <?= $form->field($workExpModel, 'year_from', [
+                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>{input}</div>{error}{hint}'
+            ])->widget(DatePicker::class, [
+                'options' => ['class' => 'form-control'],
+                'dateFormat' => 'yyyy-MM-dd',
+                'clientOptions' => [
+                    'dateFormat' => 'yy-mm-dd',
+                    'changeYear' => true,
+                    'changeMonth' => true,
+                    'yearRange' => '-100:+0',
+                ],
+            ]) ?>
         </div>
+
+
+
         <div class="col-md-6">
-            <?= $form->field($workExpModel, 'year_to')->textInput(['type' => 'date']) ?>
+            <?= $form->field($workExpModel, 'year_to', [
+                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>{input}</div>{error}{hint}'
+            ])->widget(DatePicker::class, [
+                'options' => ['class' => 'form-control'],
+                'dateFormat' => 'yyyy-MM-dd',
+                'clientOptions' => [
+                    'dateFormat' => 'yy-mm-dd',
+                    'changeYear' => true,
+                    'changeMonth' => true,
+                    'yearRange' => '-100:+0',
+                ],
+            ]) ?>
         </div>
     </div>
 
@@ -75,31 +101,22 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Employer Name</th>
                     <th>Designation</th>
                     <th>From</th>
                     <th>To</th>
                     <th>Assignment</th>
                     <th>Relevant</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($existingWorkExperiences as $index => $exp): ?>
                     <tr data-experience-id="<?= Html::encode($exp['experience_id']) ?>">
                         <td><?= $index + 1 ?></td>
-                        <td data-field="employer_name"><?= Html::encode($exp['employer_name']) ?></td>
                         <td data-field="designation"><?= Html::encode($exp['designation']) ?></td>
                         <td data-field="year_from"><?= Html::encode(Yii::$app->formatter->asDate($exp['year_from'])) ?></td>
                         <td data-field="year_to"><?= Html::encode($exp['year_to'] ? Yii::$app->formatter->asDate($exp['year_to']) : 'Present') ?></td>
                         <td data-field="assignment" style="white-space: pre-wrap; word-break: break-word;"><?= Html::encode($exp['assignment']) ?></td>
                         <td data-field="relevant"><?= Html::encode($exp['relevant']) ?></td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-primary btn-edit-work-exp" data-id="<?= Html::encode($exp['experience_id']) ?>">Edit</button>
-                            <button type="button" class="btn btn-sm btn-danger btn-delete-work-exp" data-id="<?= Html::encode($exp['experience_id']) ?>">Delete</button>
-                            <button type="button" class="btn btn-sm btn-success btn-save-work-exp" data-id="<?= Html::encode($exp['experience_id']) ?>" style="display:none;">Save</button>
-                            <button type="button" class="btn btn-sm btn-warning btn-cancel-work-exp" data-id="<?= Html::encode($exp['experience_id']) ?>" style="display:none;">Cancel</button>
-                        </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
