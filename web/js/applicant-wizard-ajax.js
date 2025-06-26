@@ -108,11 +108,13 @@ $(document).ready(function() {
                 // contentArea.find('.datepicker').datepicker();
 
                 // Auto-fill employer name if work experience step is loaded
-                if (newActiveStep === 'applicant-work-exp') {
-                    if (window.wizardConfig && window.wizardConfig.personalNames) {
+                var stepToCheckForAutofill = response.nextStep || response.currentStep || activeStepKey; // activeStepKey from updateWizardUI context
+                if (stepToCheckForAutofill === 'applicant-work-exp') {
+                    var namesToUse = response.personalNames || (window.wizardConfig ? window.wizardConfig.personalNames : null);
+                    if (namesToUse) {
                         var employerNameField = contentArea.find('#appapplicantworkexp-employer_name');
                         if (employerNameField.length && employerNameField.val() === '') {
-                            var fullName = ((window.wizardConfig.personalNames.firstName || '') + ' ' + (window.wizardConfig.personalNames.surname || '')).trim();
+                            var fullName = ((namesToUse.firstName || '') + ' ' + (namesToUse.surname || '')).trim();
                             if (fullName !== '') {
                                 employerNameField.val(fullName);
                             }
