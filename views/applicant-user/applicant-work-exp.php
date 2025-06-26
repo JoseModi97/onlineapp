@@ -110,8 +110,60 @@ $this->registerJs("
     // console.log('Work Experience step view loaded.');
     // console.log('Existing experiences:', " . json_encode($existingWorkExperiences ?? []) . ");
 
-    // Placeholder for future inline edit/delete JS
-    // $('#existing-work-experience-table').on('click', '.btn-edit-work-exp', function() { ... });
+    // Edit Work Experience
+    $('#existing-work-experience-table').on('click', '.btn-edit-work-exp', function() {
+        var experienceId = $(this).data('id');
+        var editUrl = '" . \yii\helpers\Url::to(['applicant-user/get-work-experience-details']) . "?experience_id=' + experienceId;
+        var \$form = $('#work-experience-step-form');
+
+        // Store the experience_id on the form for potential update logic later
+        \$form.data('editing-experience-id', experienceId);
+        // Potentially change a button text or add an indicator that we are in "edit mode"
+        // For now, just fetching and populating.
+
+        $.ajax({
+            url: editUrl,
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                if(data) {
+                    // Populate form fields
+                    $('#appapplicantworkexp-employer_name').val(data.employer_name);
+                    $('#appapplicantworkexp-designation').val(data.designation);
+                    // Ensure date format is YYYY-MM-DD for date inputs
+                    $('#appapplicantworkexp-year_from').val(data.year_from ? data.year_from.split(' ')[0] : ''); // Handles if datetime string is returned
+                    $('#appapplicantworkexp-year_to').val(data.year_to ? data.year_to.split(' ')[0] : '');     // Handles if datetime string is returned
+                    $('#appapplicantworkexp-assignment').val(data.assignment);
+                    $('#appapplicantworkexp-relevant').val(data.relevant);
+
+                    // Scroll to form for better UX
+                    $('html, body').animate({
+                        scrollTop: \$form.offset().top - 20 // Adjust offset as needed
+                    }, 500);
+
+                    // Optionally, change 'Add/Next' button text to 'Update Experience' or similar
+                    // and handle form submission differently if editing.
+                    // For now, this just populates the form. The 'Next' button will still try to add a new one
+                    // unless submission logic is also updated.
+                } else {
+                    alert('Could not retrieve experience details.');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                var errorMessage = 'Error fetching work experience details.';
+                if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                    errorMessage += '\\n' + jqXHR.responseJSON.message;
+                } else if (errorThrown) {
+                    errorMessage += '\\n' + errorThrown;
+                }
+                alert(errorMessage);
+                console.error('AJAX Error:', textStatus, errorThrown, jqXHR.responseText);
+                \$form.removeData('editing-experience-id'); // Clear editing ID on error
+            }
+        });
+    });
+
+    // Placeholder for future delete JS
     // $('#existing-work-experience-table').on('click', '.btn-delete-work-exp', function() { ... });
 
 ", \yii\web\View::POS_READY, 'work-exp-step-js');

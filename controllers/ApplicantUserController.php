@@ -730,4 +730,43 @@ class ApplicantUserController extends Controller
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
+
+    public function actionGetWorkExperienceDetails($experience_id)
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        if (empty($experience_id)) {
+            throw new \yii\web\BadRequestHttpException('Experience ID cannot be empty.');
+        }
+
+        $workExpModel = AppApplicantWorkExp::findOne($experience_id);
+
+        if ($workExpModel === null) {
+            throw new NotFoundHttpException('The requested work experience record does not exist.');
+        }
+
+        // Security check: Ensure the work experience belongs to the current applicant context
+        // This is a simplified check. In a full system, you might need to verify against
+        // the logged-in user's applicant_id or the applicant_id stored in the wizard session.
+        $session = Yii::$app->session;
+        $wizardDataKeyPrefix = 'applicant_wizard_';
+        $applicant_user_id = $session->get($wizardDataKeyPrefix . 'applicant_user_id');
+
+        if ($applicant_user_id) {
+            $appUser = AppApplicantUser::findOne($applicant_user_id);
+            if ($appUser && $appUser->appApplicant && $appUser->appApplicant->applicant_id == $workExpModel->applicant_id) {
+                // Authorized: The work experience belongs to the current applicant in the wizard
+                return $workExpModel->getAttributes();
+            } else {
+                // Log the attempt for security audit if needed
+                Yii::warning("Unauthorized attempt to access experience_id {$experience_id} by applicant_user_id {$applicant_user_id}.", __METHOD__);
+                throw new \yii\web\ForbiddenHttpException('You are not authorized to access this record.');
+            }
+        } else {
+            // If no applicant_user_id in session, this is likely an invalid state or direct access attempt
+            // For a wizard context, this should ideally not happen if prior steps are enforced.
+            Yii::warning("Attempt to access experience_id {$experience_id} without applicant_user_id in session.", __METHOD__);
+            throw new \yii\web\ForbiddenHttpException('Applicant session not found. Access denied.');
+        }
+    }
 }
