@@ -12,14 +12,11 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 /** @var app\models\AppApplicantWorkExp $workExpModel Work Experience model for the new entry form */
 /** @var array $stepData Custom data for the step (e.g., messages from controller) */
 /** @var string $currentStepForView The key of the current step being rendered */
-/** @var array $existingWorkExperiences Array of past work experiences, passed from controller */
+/** @var array|null $existingWorkExperiences Array of past work experiences, passed from controller (could be null if none or not applicable) */
 
-$appApplicant = AppApplicant::findOne(['applicant_user_id' => $_GET['applicant_user_id']]);
-$existingWorkExperiences = AppApplicantWorkExp::find()
-    ->where(['applicant_id' => $appApplicant['applicant_id']])
-    ->orderBy(['year_from' => SORT_DESC]) // Optional: order them
-    ->asArray() // Pass as array to view
-    ->all();
+// The lines fetching AppApplicant and AppApplicantWorkExp directly in the view have been removed.
+// This data is now expected to be passed from the ApplicantUserController::actionUpdateWizard()
+// into the $existingWorkExperiences variable.
 ?>
 
 <div class="applicant-work-exp-form">

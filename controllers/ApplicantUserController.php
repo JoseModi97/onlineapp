@@ -368,6 +368,19 @@ class ApplicantUserController extends Controller
                                 'currentStepForView' => $activeRenderStep
                             ];
 
+                            $fetchedWorkExperiences = null;
+                            if ($activeRenderStep === self::STEP_WORK_EXPERIENCE && $applicant_user_id) {
+                                $appUser = AppApplicantUser::findOne($applicant_user_id);
+                                if ($appUser && $appUser->appApplicant) {
+                                    $fetchedWorkExperiences = AppApplicantWorkExp::find()
+                                        ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
+                                        ->orderBy(['year_from' => SORT_DESC])
+                                        ->asArray()
+                                        ->all();
+                                    $viewParams['existingWorkExperiences'] = $fetchedWorkExperiences;
+                                }
+                            }
+
                             $jsonResponse = ['success' => true, 'html' => $this->renderAjax($activeRenderStep, $viewParams), 'nextStep' => $activeRenderStep, 'applicant_user_id' => $applicant_user_id];
 
                             // Add personal names to JSON response if next step is work experience, for auto-fill
@@ -377,16 +390,10 @@ class ApplicantUserController extends Controller
                                     'firstName' => $personalDetailsFromSession['first_name'] ?? '',
                                     'surname' => $personalDetailsFromSession['surname'] ?? '',
                                 ];
-                                // Fetch existing work experiences for display
-                                if ($applicant_user_id) {
-                                    $appUser = AppApplicantUser::findOne($applicant_user_id);
-                                    if ($appUser && $appUser->appApplicant) {
-                                        $jsonResponse['existingWorkExperiences'] = AppApplicantWorkExp::find()
-                                            ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
-                                            ->orderBy(['year_from' => SORT_DESC]) // Optional: order them
-                                            ->asArray() // Pass as array to view
-                                            ->all();
-                                    }
+                                // Also include existingWorkExperiences in jsonResponse if JS needs it separately
+                                // (it's now also available to the view via $viewParams)
+                                if ($fetchedWorkExperiences !== null) {
+                                    $jsonResponse['existingWorkExperiences'] = $fetchedWorkExperiences;
                                 }
                             }
                             return $jsonResponse;
@@ -495,6 +502,19 @@ class ApplicantUserController extends Controller
                 'currentStepForView' => $targetStep
             ];
 
+            $fetchedWorkExperiences = null;
+            if ($targetStep === self::STEP_WORK_EXPERIENCE && $applicant_user_id) {
+                $appUser = AppApplicantUser::findOne($applicant_user_id);
+                if ($appUser && $appUser->appApplicant) {
+                    $fetchedWorkExperiences = AppApplicantWorkExp::find()
+                        ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
+                        ->orderBy(['year_from' => SORT_DESC])
+                        ->asArray()
+                        ->all();
+                    $viewParams['existingWorkExperiences'] = $fetchedWorkExperiences;
+                }
+            }
+
             $jsonResponse = ['success' => true, 'html' => $this->renderAjax($targetStep, $viewParams), 'currentStep' => $targetStep, 'applicant_user_id' => $applicant_user_id];
 
             // Add personal names to JSON response if target step is work experience, for auto-fill
@@ -504,16 +524,9 @@ class ApplicantUserController extends Controller
                     'firstName' => $personalDetailsFromSession['first_name'] ?? '',
                     'surname' => $personalDetailsFromSession['surname'] ?? '',
                 ];
-                // Fetch existing work experiences for display
-                if ($applicant_user_id) {
-                    $appUser = AppApplicantUser::findOne($applicant_user_id);
-                    if ($appUser && $appUser->appApplicant) {
-                        $jsonResponse['existingWorkExperiences'] = AppApplicantWorkExp::find()
-                            ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
-                            ->orderBy(['year_from' => SORT_DESC]) // Optional: order them
-                            ->asArray() // Pass as array to view
-                            ->all();
-                    }
+                // Also include existingWorkExperiences in jsonResponse if JS needs it separately
+                if ($fetchedWorkExperiences !== null) {
+                    $jsonResponse['existingWorkExperiences'] = $fetchedWorkExperiences;
                 }
             }
             return $jsonResponse;
