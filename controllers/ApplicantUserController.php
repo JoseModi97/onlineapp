@@ -178,8 +178,25 @@ class ApplicantUserController extends Controller
                         $isValid = true;
                     } else {
                         $isValid = false;
-                        if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Education Details.';
-                        Yii::error($educationModel->errors);
+                        $validationErrors = $educationModel->getErrors();
+                        $logMessage = "Education Step Validation Failed. Applicant User ID: " . ($applicant_user_id ?? 'N/A') .
+                                      ", AppApplicant ID: " . ($appApplicantModel->applicant_id ?? 'N/A') .
+                                      ", Education Model Attributes: " . json_encode($educationModel->attributes) .
+                                      ", Validation Errors: " . json_encode($validationErrors);
+                        Yii::error($logMessage);
+
+                        if (empty($validationErrors)) {
+                            // Prioritize existing message if it's more specific (e.g. from applicant_id check)
+                            if (empty($stepRenderData['message'])) {
+                                $stepRenderData['message'] = 'Education Details: Validation failed with no specific field errors. Please review your input.';
+                            }
+                            if (!$appApplicantModel->applicant_id && strpos($stepRenderData['message'], 'Applicant ID is missing') === false) {
+                                $stepRenderData['message'] .= ' (Critical: Applicant ID for education record is missing.)';
+                            }
+                        } elseif (empty($stepRenderData['message'])) {
+                            // Only set this if no more specific message (like missing applicant_id) was already set
+                            $stepRenderData['message'] = 'Please correct the highlighted errors in Education Details.';
+                        }
                     }
                 } elseif($isValid) { // $isValid was true, but load failed
                     $isValid = false;
@@ -328,7 +345,27 @@ class ApplicantUserController extends Controller
                             $errors = [];
                         }
                     }
-                    return ['success' => false, 'errors' => $errors, 'message' => $stepRenderData['message'] ?? 'Validation failed.'];
+
+                    $userMessage = $stepRenderData['message'];
+                    if (empty($userMessage)) { // Default message if nothing specific was set
+                        $userMessage = 'Validation failed. Please check your input.';
+                    }
+
+                    // If errors are empty, but we have a specific message (e.g. from our enhanced logic),
+                    // ensure it's not the most generic one if possible.
+                    if (empty($errors) && $currentProcessingStep === self::STEP_EDUCATION && $userMessage === 'Validation failed. Please check your input.') {
+                        if (isset($educationModel) && !$educationModel->hasErrors() && !$isValid) {
+                             // This means $educationModel->validate() was false, but getErrors() was empty.
+                             $userMessage = 'Education Details: Validation failed with no specific field errors. Please review data consistency.';
+                             if (isset($appApplicantModel) && !$appApplicantModel->applicant_id) {
+                                 $userMessage .= ' (Possible issue: Applicant ID for education record is missing.)';
+                             }
+                        } else if (!isset($educationModel) && !$isValid) {
+                            // educationModel itself wasn't even properly available during validation failure handling
+                            $userMessage = 'Education Details: A system error occurred while validating. Please try again.';
+                        }
+                    }
+                    return ['success' => false, 'errors' => $errors, 'message' => $userMessage];
                 }
             }
 
