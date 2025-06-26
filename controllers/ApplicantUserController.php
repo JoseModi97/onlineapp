@@ -479,12 +479,28 @@ class ApplicantUserController extends Controller
                 if ($applicant_user_id) {
                     $appUser = AppApplicantUser::findOne($applicant_user_id);
                     if ($appUser && $appUser->appApplicant) {
-                        $jsonResponse['existingWorkExperiences'] = AppApplicantWorkExp::find()
-                            ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
-                            ->orderBy(['year_from' => SORT_DESC]) // Optional: order them
-                            ->asArray() // Pass as array to view
-                            ->all();
+                                // User request: "Make the where clause to fetch where applicant_id = Yii::$app->request->get('applicant_user_id')"
+                                // The $applicant_user_id variable in this scope is initialized from Yii::$app->request->get('applicant_user_id')
+                                // if present, otherwise it falls back to session.
+                                // For strict adherence to "Yii::$app->request->get('applicant_user_id')", we should fetch it directly here.
+                                $requested_applicant_user_id_for_exp = Yii::$app->request->get('applicant_user_id');
+                                if ($requested_applicant_user_id_for_exp) {
+                                    $jsonResponse['existingWorkExperiences'] = AppApplicantWorkExp::find()
+                                        ->where(['applicant_id' => $requested_applicant_user_id_for_exp]) // Query as per user's literal request
+                                        ->orderBy(['year_from' => SORT_DESC])
+                                        ->asArray()
+                                        ->all();
+                                } else {
+                                    // If applicant_user_id is not in GET, behavior is undefined by request. Default to empty.
+                                    $jsonResponse['existingWorkExperiences'] = [];
+                                }
+                            } else {
+                                // If $appUser or $appUser->appApplicant is not found (e.g., invalid $applicant_user_id from session/param)
+                                $jsonResponse['existingWorkExperiences'] = [];
                     }
+                        } else {
+                             // If $applicant_user_id (from param/session) itself is null/empty
+                            $jsonResponse['existingWorkExperiences'] = [];
                 }
             }
             return $jsonResponse;
@@ -536,13 +552,25 @@ class ApplicantUserController extends Controller
 
         // For initial page load, if the current step is work experience, fetch existing experiences
         if ($currentStep === self::STEP_WORK_EXPERIENCE && $applicant_user_id) {
-            $appUser = AppApplicantUser::findOne($applicant_user_id);
+            $appUser = AppApplicantUser::findOne($applicant_user_id); // $applicant_user_id is from param/session
             if ($appUser && $appUser->appApplicant) {
-                $renderParams['existingWorkExperiences'] = AppApplicantWorkExp::find()
-                    ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
-                    ->orderBy(['year_from' => SORT_DESC])
-                    ->asArray()
-                    ->all();
+                // User request: "Make the where clause to fetch where applicant_id = Yii::$app->request->get('applicant_user_id')"
+                // For strict adherence, we fetch directly from GET for this specific query.
+                $requested_applicant_user_id_for_exp = Yii::$app->request->get('applicant_user_id');
+                if ($requested_applicant_user_id_for_exp) {
+                    $renderParams['existingWorkExperiences'] = AppApplicantWorkExp::find()
+                        ->where(['applicant_id' => $requested_applicant_user_id_for_exp]) // Query as per user's literal request
+                        ->orderBy(['year_from' => SORT_DESC])
+                        ->asArray()
+                        ->all();
+                } else {
+                    // If applicant_user_id is not in GET for non-AJAX, default to empty or respect $applicant_user_id from session.
+                    // The original code relied on $appUser (from session if GET was missing)
+                    // For consistency with the AJAX change, if GET is missing, show empty.
+                    $renderParams['existingWorkExperiences'] = [];
+                }
+            } else {
+                 $renderParams['existingWorkExperiences'] = [];
             }
         }
         return $this->render('update-wizard', $renderParams);
