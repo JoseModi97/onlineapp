@@ -44,7 +44,9 @@ class AppApplicantEducation extends \yii\db\ActiveRecord
     {
         return [
             [['year_from', 'year_to', 'grade_per_student', 'points_score', 'pi_gpa', 'relevant', 'remarks', 'name_as_per_cert', 'file_path', 'file_name'], 'default', 'value' => null],
-            [['education_id', 'applicant_id', 'edu_system_code', 'institution_name', 'edu_ref_no', 'grade', 'cert_source'], 'required'],
+            // 'education_id' removed from general required rule, as it's typically an auto-increment PK.
+            // It is still an integer and unique.
+            [['applicant_id', 'edu_system_code', 'institution_name', 'edu_ref_no', 'grade', 'cert_source'], 'required'],
             [['education_id', 'applicant_id', 'edu_system_code', 'year_from', 'year_to', 'points_score', 'pi_gpa', 'cert_source'], 'default', 'value' => null],
             [['education_id', 'applicant_id', 'edu_system_code', 'year_from', 'year_to', 'points_score', 'pi_gpa', 'cert_source'], 'integer'],
             [['institution_name', 'grade', 'grade_per_student'], 'string', 'max' => 80],

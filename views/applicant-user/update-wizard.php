@@ -26,6 +26,7 @@ $this->params['breadcrumbs'][] = $this->title;
 $stepTitles = [
     'personal-details' => 'Personal Details',
     'applicant-specifics' => 'Applicant Specifics',
+    'education' => 'Education Details', // New title
     'account-settings' => 'Account Settings',
 ];
 
