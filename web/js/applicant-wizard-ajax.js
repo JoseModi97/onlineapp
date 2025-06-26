@@ -134,17 +134,57 @@ $(document).ready(function() {
                         var profileImageInput = contentArea.find('#profile-image-input');
                         var profileImageErrorDiv = contentArea.find('#profile-image-error');
 
-                        profileImageInput.addClass('is-invalid');
-                        profileImageErrorDiv.html(errorMsg).show();
+                        if (profileImageInput.length) {
+                            profileImageInput.addClass('is-invalid');
+                            if (profileImageErrorDiv.length) {
+                                profileImageErrorDiv.html(errorMsg).show();
+                            } else {
+                                console.warn("Wizard AJAX Debug: profileImageErrorDiv ('#profile-image-error') not found for profile_image_file.");
+                            }
+                        } else {
+                            console.warn("Wizard AJAX Debug: profileImageInput ('#profile-image-input') not found for profile_image_file.");
+                        }
                     } else {
-                        var input = contentArea.find('[name*="[' + field + ']"], [name="' + field + '"]');
-                        input.addClass('is-invalid');
+                        var inputSelector = '[name*="[' + field + ']"], [name="' + field + '"]';
+                        // More specific selectors for common Yii2 input IDs can also be tried if the name-based one fails
+                        // e.g., '#' + modelName.toLowerCase() + '-' + field.toLowerCase()
+                        console.log("Wizard AJAX Debug: Processing error for field '"+field+"'. Selector: " + inputSelector);
+                        var input = contentArea.find(inputSelector);
 
-                        // Remove old generic feedback for this field before adding new one
-                        input.closest('.mb-3, .form-group').find('.invalid-feedback:not(#profile-image-error)').remove();
-                        input.closest('.mb-3, .form-group').append('<div class="invalid-feedback">' + errorMsg + '</div>');
-                        // Make sure it's visible, Yii might add it hidden
-                        input.closest('.mb-3, .form-group').find('.invalid-feedback').show();
+                        if (input.length === 0) {
+                            // Try finding by ID as a fallback (common Yii2 pattern: modelname-attribute)
+                            // This requires knowing the model name. We don't have it directly here from `field`.
+                            // For now, log that the primary selector failed.
+                            console.warn("Wizard AJAX Debug: Input not found for field '"+field+"' using primary selectors. Input length: " + input.length);
+                        } else {
+                            console.log("Wizard AJAX Debug: Found input for field '"+field+"'. Count: " + input.length, input);
+                            input.addClass('is-invalid');
+
+                            // Attempt to find the wrapper for the error message
+                            var wrapper = input.first().closest('.mb-3, .form-group, .form-floating'); // Added .form-floating as another common wrapper
+                            console.log("Wizard AJAX Debug: Wrapper for '"+field+"':", wrapper.length, wrapper);
+
+                            if (wrapper.length > 0) {
+                                // Remove previously added error messages by this script to avoid duplicates
+                                wrapper.find('.invalid-feedback.custom-js-error').remove();
+
+                                // Check if Yii's own .invalid-feedback div is present
+                                var yiiErrorDiv = wrapper.find('.invalid-feedback');
+                                if (yiiErrorDiv.length > 0) {
+                                    console.log("Wizard AJAX Debug: Found Yii's .invalid-feedback div for '"+field+"'. Populating it.");
+                                    yiiErrorDiv.html(errorMsg).show(); // Populate existing div
+                                } else {
+                                    console.log("Wizard AJAX Debug: Yii's .invalid-feedback div NOT found for '"+field+"'. Appending new one.");
+                                    wrapper.append('<div class="invalid-feedback custom-js-error">' + errorMsg + '</div>'); // Append new one
+                                }
+                                // Ensure it's visible (Bootstrap 5 usually handles this if input is .is-invalid)
+                                wrapper.find('.invalid-feedback').show();
+                            } else {
+                                console.warn("Wizard AJAX Debug: No wrapper (.mb-3, .form-group, .form-floating) found for field '"+field+"'. Error message for '"+field+"' not placed directly.");
+                                // As a fallback, place it after the input if no conventional wrapper is found
+                                input.after('<div class="invalid-feedback custom-js-error" style="display:block;">' + errorMsg + '</div>');
+                            }
+                        }
                     }
                 });
 
