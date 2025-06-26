@@ -174,6 +174,12 @@ foreach ($steps as $index => $stepKey) {
             'id' => 'wizard-previous-btn',
             'style' => $isFirstStep ? 'display:none;' : ''
         ]);
+        // Skip button - initially hidden, shown by JS for specific steps
+        echo Html::button('Skip', [
+            'class' => 'btn btn-link me-2', // Using btn-link for a less prominent look, adjust as needed
+            'id' => 'wizard-skip-btn',
+            'style' => 'display:none;' // Initially hidden
+        ]);
         echo Html::button('Next', [
             'class' => 'btn btn-primary me-2',
             'id' => 'wizard-next-btn',

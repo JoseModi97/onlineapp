@@ -46,6 +46,9 @@ $(document).ready(function() {
         wizardContainer.find('#wizard-next-btn').toggle(!isLastStep);
         wizardContainer.find('#wizard-save-btn').toggle(isLastStep); // Typically shown only on the last step
         wizardContainer.find('#wizard-previous-btn').toggle(!isFirstStep);
+        // Show Skip button only for 'applicant-work-exp' step
+        wizardContainer.find('#wizard-skip-btn').toggle(activeStepKey === 'applicant-work-exp');
+
 
         // Update data attribute for applicant_user_id on the container if it changed
         if (applicantUserId) {
@@ -245,24 +248,26 @@ $(document).ready(function() {
         }
     });
 
+    // For 'Skip' button (now a main wizard button)
+    wizardContainer.on('click', '#wizard-skip-btn', function(e) {
+        e.preventDefault();
+        var currentActiveStep = navTabsContainer.find('a.nav-link.active').data('step');
+        // Ensure this button really is for 'applicant-work-exp' or make it generic if needed
+        if (currentActiveStep === 'applicant-work-exp') {
+            var formData = new FormData(); // Use FormData for consistency, even if sending little data
+            formData.append('wizard_skip_step', '1');
+            // current_step_validated will be added by makeAjaxRequest using currentActiveStep
+            makeAjaxRequest(currentActiveStep, 'POST', formData);
+        } else {
+            console.warn('#wizard-skip-btn clicked on unexpected step:', currentActiveStep);
+        }
+    });
+
     // For Tab clicks
     navTabsContainer.on('click', 'a.nav-link:not(.disabled):not(.active)', function(e) {
         e.preventDefault();
         var targetStepKey = $(this).data('step');
         makeAjaxRequest(targetStepKey, 'GET', null);
-    });
-
-    // For 'Skip Work Experience' button (event delegation on contentArea)
-    contentArea.on('click', '#wizard-skip-work-exp-btn', function(e) {
-        e.preventDefault();
-        var currentActiveStep = 'applicant-work-exp'; // This button is specific to this step
-        var formData = new FormData(); // Create new FormData for the skip action
-        formData.append('wizard_skip_step', '1');
-        // Add applicant_user_id if available, though controller might also get it from session/URL
-        if (currentApplicantUserId) {
-            formData.append('applicant_user_id', currentApplicantUserId);
-        }
-        makeAjaxRequest(currentActiveStep, 'POST', formData);
     });
 
     // Handle browser back/forward buttons
