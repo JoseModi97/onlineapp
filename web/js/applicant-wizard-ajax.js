@@ -254,8 +254,20 @@ $(document).ready(function() {
         var currentActiveStep = navTabsContainer.find('a.nav-link.active').data('step');
         // Ensure this button really is for 'applicant-work-exp' or make it generic if needed
         if (currentActiveStep === 'applicant-work-exp') {
-            var formData = new FormData(); // Use FormData for consistency, even if sending little data
+            var formData = new FormData(); // Use FormData for consistency
             formData.append('wizard_skip_step', '1');
+
+            // Add CSRF token to the FormData
+            var csrfParam = $('meta[name="csrf-param"]').attr('content');
+            var csrfToken = $('meta[name="csrf-token"]').attr('content');
+            if (csrfParam && csrfToken) {
+                formData.append(csrfParam, csrfToken);
+            } else {
+                console.error('CSRF token or param not found in meta tags. Skip request may be rejected by server.');
+                // Optionally, display an error to the user or prevent the request
+                // For now, we'll let it proceed and the server will likely reject it if CSRF is strictly enforced and missing.
+            }
+
             // current_step_validated will be added by makeAjaxRequest using currentActiveStep
             makeAjaxRequest(currentActiveStep, 'POST', formData);
         } else {
