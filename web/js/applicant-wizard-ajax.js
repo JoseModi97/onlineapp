@@ -137,14 +137,25 @@ $(document).ready(function() {
                         profileImageInput.addClass('is-invalid');
                         profileImageErrorDiv.html(errorMsg).show();
                     } else {
+                        console.log("Processing error for field:", field, "Messages:", messages); // DEBUG LOG
                         var input = contentArea.find('[name*="[' + field + ']"], [name="' + field + '"]');
-                        input.addClass('is-invalid');
+                        console.log("Input found for field '" + field + "':", input.length, input); // DEBUG LOG
+                        if (input.length > 0) { // Ensure input is found before proceeding
+                            input.addClass('is-invalid');
 
-                        // Remove old generic feedback for this field before adding new one
-                        input.closest('.mb-3, .form-group').find('.invalid-feedback:not(#profile-image-error)').remove();
-                        input.closest('.mb-3, .form-group').append('<div class="invalid-feedback">' + errorMsg + '</div>');
-                        // Make sure it's visible, Yii might add it hidden
-                        input.closest('.mb-3, .form-group').find('.invalid-feedback').show();
+                            var formGroup = input.closest('.mb-3, .form-group');
+                            console.log("Form group for field '" + field + "':", formGroup.length, formGroup); // DEBUG LOG
+                            if (formGroup.length > 0) {
+                                formGroup.find('.invalid-feedback:not(#profile-image-error)').remove();
+                                formGroup.append('<div class="invalid-feedback">' + errorMsg + '</div>');
+                                // Make sure it's visible, Yii might add it hidden
+                                formGroup.find('.invalid-feedback').show();
+                            } else {
+                                console.warn("No .mb-3 or .form-group parent found for input related to field:", field, input);
+                            }
+                        } else {
+                            console.warn("No input found for field:", field);
+                        }
                     }
                 });
 
