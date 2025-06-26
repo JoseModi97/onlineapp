@@ -111,6 +111,8 @@ $(document).ready(function() {
             $('#wizard-general-error').hide().text('');
 
         } else { // AJAX call success=false (validation errors or other server error)
+            console.log('Handling failed AJAX response. Full response object:', response); // DEBUG LOG
+            console.log('Content of response.errors:', response.errors); // DEBUG LOG
             if (response.errors) {
                 // Clear previous errors more carefully
                 contentArea.find('.form-control.is-invalid').removeClass('is-invalid');
