@@ -185,6 +185,9 @@ class ApplicantUserController extends Controller
                 }
 
                 if ($isValid !== false) { // Proceed if applicant_id was found
+                    // SET SCENARIO FOR EDUCATION STEP
+                    $educationModelToProcess->scenario = AppApplicantEducation::SCENARIO_WIZARD_EDUCATION_STEP;
+
                     // Handle file upload for education certificate
                     $educationModelToProcess->education_certificate_file = UploadedFile::getInstance($educationModelToProcess, 'education_certificate_file');
                     $oldCertificateFile = $educationModelToProcess->isNewRecord ? null : $educationModelToProcess->file_name;
@@ -195,7 +198,7 @@ class ApplicantUserController extends Controller
                              $educationModelToProcess->file_name = $postData['AppApplicantEducation']['file_name_hidden'] ?? $oldCertificateFile;
                              // Assuming 'file_name_hidden' stores the current file name if no new upload
                         }
-
+                        // Scenario is already set, validate() will use it.
                         if ($educationModelToProcess->validate()) {
                             if ($educationModelToProcess->education_certificate_file) {
                                 $uploadPath = Yii::getAlias('@webroot/uploads/education_certificates/');
