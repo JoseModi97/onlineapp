@@ -432,14 +432,6 @@ class ApplicantUserController extends Controller
         return $this->render('update-wizard', $renderParams);
     }
 
-use app\models\AppApplicantEducation; // Added for the new step
-
-// ... (other use statements) ...
-
-class ApplicantUserController extends Controller
-{
-    // ... (constants and _steps array are already updated) ...
-
     protected function loadModelsForStep($step, $applicant_user_id, $session, $wizardDataKeyPrefix, $existingModel = null, $existingAppApplicantModel = null, $existingEducationModel = null) // Added $existingEducationModel
     {
         $model = $existingModel ?? ($applicant_user_id ? $this->findModel($applicant_user_id) : new AppApplicantUser());
