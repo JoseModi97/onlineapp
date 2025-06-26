@@ -28,6 +28,7 @@ use Yii;
 class AppApplicantEducation extends \yii\db\ActiveRecord
 {
 
+    public $education_certificate_file;
 
     /**
      * {@inheritdoc}
@@ -56,6 +57,7 @@ class AppApplicantEducation extends \yii\db\ActiveRecord
             [['education_id'], 'unique'],
             [['applicant_id'], 'exist', 'skipOnError' => true, 'targetClass' => AppApplicant::class, 'targetAttribute' => ['applicant_id' => 'applicant_id']],
             [['edu_system_code'], 'exist', 'skipOnError' => true, 'targetClass' => AppEducationSystem::class, 'targetAttribute' => ['edu_system_code' => 'edu_system_code']],
+            [['education_certificate_file'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, pdf, doc, docx', 'maxSize' => 1024 * 1024 * 2], // Max 2MB
         ];
     }
 
