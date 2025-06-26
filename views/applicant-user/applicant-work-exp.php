@@ -108,7 +108,7 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 // Or for handling the inline edit table (to be implemented in next phase)
 $this->registerJs("
     // console.log('Work Experience step view loaded.');
-    // console.log('Existing experiences:', " . json_encode($existingWorkExperiences ?? []) . ");
+    // console.log('Existing experiences:', " . json_encode($existingWorkExperiences ?? [], JSON_HEX_QUOT) . ");
 
     // Edit Work Experience
     $('#existing-work-experience-table').on('click', '.btn-edit-work-exp', function() {
