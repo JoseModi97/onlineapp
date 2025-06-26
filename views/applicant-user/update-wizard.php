@@ -180,6 +180,11 @@ foreach ($steps as $index => $stepKey) {
             'id' => 'wizard-next-btn',
             'style' => $isLastStep ? 'display:none;' : ''
         ]);
+        echo Html::button('Skip', [
+            'class' => 'btn btn-info me-2', // Using 'btn-info' for differentiation
+            'id' => 'wizard-skip-btn',
+            'style' => 'display:none;' // Initially hidden, JS will control visibility
+        ]);
         // The 'Save' button might be specific to the last step, or a general 'Save Draft'
         // For now, let's assume it's for the final save on the last step.
         echo Html::button('Save', [
