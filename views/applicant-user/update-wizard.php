@@ -7,6 +7,7 @@ use yii\bootstrap5\Nav; // Using Bootstrap 5 Nav widget for tabs
 /** @var string $currentStep The name of the current step view to render (e.g., 'personal-details') */
 /** @var app\models\AppApplicantUser $model */
 /** @var app\models\AppApplicant $appApplicantModel */
+/** @var app\models\AppApplicantWorkExp $workExpModel Work Experience model, passed from controller */
 /** @var array $stepData Custom data passed from controller, like messages or validation states */
 /** @var array $steps Array of step names/keys passed from controller */
 
@@ -25,6 +26,7 @@ $this->params['breadcrumbs'][] = $this->title;
 // Define titles for each step for the navigation UI
 $stepTitles = [
     'personal-details' => 'Personal Details',
+    'applicant-work-exp' => 'Work Experience', // Added title for the new step
     'applicant-specifics' => 'Applicant Specifics',
     'account-settings' => 'Account Settings',
 ];
@@ -133,12 +135,16 @@ foreach ($steps as $index => $stepKey) {
             if (file_exists($stepViewFile)) {
                 // Pass currentStepForView to the partial, so it knows which step it is
                 // This is useful if a single partial view file is used for multiple similar steps.
-                echo $this->render($currentStep, [
+                // Prepare parameters for the step view
+                $viewParams = [
                     'model' => $model,
                     'appApplicantModel' => $appApplicantModel,
+                    // Conditionally pass workExpModel if it's set (it should be by the controller for relevant steps)
+                    'workExpModel' => isset($workExpModel) ? $workExpModel : null,
                     'stepData' => $stepData,
                     'currentStepForView' => $currentStep // Pass the actual current step key
-                ]);
+                ];
+                echo $this->render($currentStep, $viewParams);
             } else {
                 echo '<div class="alert alert-warning">Step view not found: ' . Html::encode($currentStep) . '</div>';
             }
