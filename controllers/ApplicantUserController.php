@@ -213,7 +213,9 @@ class ApplicantUserController extends Controller
                                 } else {
                                     $isValid = false;
                                     $educationModelToProcess->addError('education_certificate_file', 'Could not save the uploaded certificate.');
-                                    $stepRenderData['message'] = $stepRenderData['message'] ?? 'Error saving certificate.';
+                                    if (empty($stepRenderData['message'])) { // Ensure specific file error message is prioritized
+                                        $stepRenderData['message'] = 'Error saving certificate.';
+                                    }
                                 }
                             }
                             if ($isValid !== false) { // Re-check isValid after potential file error
@@ -227,11 +229,15 @@ class ApplicantUserController extends Controller
                             }
                         } else {
                             $isValid = false;
-                            $stepRenderData['message'] = $stepRenderData['message'] ?? 'Please correct errors in Education Details.';
+                            if (empty($stepRenderData['message'])) { // Check if a more specific message (e.g., file upload) is already set
+                                $stepRenderData['message'] = 'Please correct errors in Education Details.';
+                            }
                         }
                     } else {
                         $isValid = false;
-                        $stepRenderData['message'] = $stepRenderData['message'] ?? 'Could not load education details data.';
+                        if (empty($stepRenderData['message'])) {
+                             $stepRenderData['message'] = 'Could not load education details data.';
+                        }
                     }
                 }
             } elseif ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
