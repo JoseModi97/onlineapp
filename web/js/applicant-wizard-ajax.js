@@ -46,8 +46,7 @@ $(document).ready(function() {
         wizardContainer.find('#wizard-next-btn').toggle(!isLastStep);
         wizardContainer.find('#wizard-save-btn').toggle(isLastStep); // Typically shown only on the last step
         wizardContainer.find('#wizard-previous-btn').toggle(!isFirstStep);
-        // Show Skip button only for 'applicant-work-exp' step
-        wizardContainer.find('#wizard-skip-btn').toggle(activeStepKey === 'applicant-work-exp');
+        // Removed Skip button toggle: wizardContainer.find('#wizard-skip-btn').toggle(activeStepKey === 'applicant-work-exp');
 
 
         // Update data attribute for applicant_user_id on the container if it changed
@@ -107,6 +106,19 @@ $(document).ready(function() {
                 // Re-initialize any specific JS needed for the new step's content here
                 // e.g., date pickers, select2, etc.
                 // contentArea.find('.datepicker').datepicker();
+
+                // Auto-fill employer name if work experience step is loaded
+                if (newActiveStep === 'applicant-work-exp') {
+                    if (window.wizardConfig && window.wizardConfig.personalNames) {
+                        var employerNameField = contentArea.find('#appapplicantworkexp-employer_name');
+                        if (employerNameField.length && employerNameField.val() === '') {
+                            var fullName = ((window.wizardConfig.personalNames.firstName || '') + ' ' + (window.wizardConfig.personalNames.surname || '')).trim();
+                            if (fullName !== '') {
+                                employerNameField.val(fullName);
+                            }
+                        }
+                    }
+                }
             }
              // Clear previous errors
             $('.form-control').removeClass('is-invalid');
@@ -248,33 +260,6 @@ $(document).ready(function() {
         }
     });
 
-    // For 'Skip' button (now a main wizard button)
-    wizardContainer.on('click', '#wizard-skip-btn', function(e) {
-        e.preventDefault();
-        var currentActiveStep = navTabsContainer.find('a.nav-link.active').data('step');
-        // Ensure this button really is for 'applicant-work-exp' or make it generic if needed
-        if (currentActiveStep === 'applicant-work-exp') {
-            var formData = new FormData(); // Use FormData for consistency
-            formData.append('wizard_skip_step', '1');
-
-            // Add CSRF token to the FormData
-            var csrfParam = $('meta[name="csrf-param"]').attr('content');
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-            if (csrfParam && csrfToken) {
-                formData.append(csrfParam, csrfToken);
-            } else {
-                console.error('CSRF token or param not found in meta tags. Skip request may be rejected by server.');
-                // Optionally, display an error to the user or prevent the request
-                // For now, we'll let it proceed and the server will likely reject it if CSRF is strictly enforced and missing.
-            }
-
-            // current_step_validated will be added by makeAjaxRequest using currentActiveStep
-            makeAjaxRequest(currentActiveStep, 'POST', formData);
-        } else {
-            console.warn('#wizard-skip-btn clicked on unexpected step:', currentActiveStep);
-        }
-    });
-
     // For Tab clicks
     navTabsContainer.on('click', 'a.nav-link:not(.disabled):not(.active)', function(e) {
         e.preventDefault();
@@ -305,6 +290,19 @@ $(document).ready(function() {
     var allSteps = wizardContainer.data('steps-array');
     if (initialStep && allSteps && allSteps.length > 0) {
         updateWizardUI(initialStep, allSteps, currentApplicantUserId);
+
+        // Auto-fill for initial load if work experience is the current step
+        if (initialStep === 'applicant-work-exp') {
+            if (window.wizardConfig && window.wizardConfig.personalNames) {
+                var employerNameField = contentArea.find('#appapplicantworkexp-employer_name');
+                if (employerNameField.length && employerNameField.val() === '') {
+                    var fullName = ((window.wizardConfig.personalNames.firstName || '') + ' ' + (window.wizardConfig.personalNames.surname || '')).trim();
+                    if (fullName !== '') {
+                        employerNameField.val(fullName);
+                    }
+                }
+            }
+        }
     }
 
     // Add a div for general AJAX errors if not present

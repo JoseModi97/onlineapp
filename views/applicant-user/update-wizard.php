@@ -10,6 +10,7 @@ use yii\bootstrap5\Nav; // Using Bootstrap 5 Nav widget for tabs
 /** @var app\models\AppApplicantWorkExp $workExpModel Work Experience model, passed from controller */
 /** @var array $stepData Custom data passed from controller, like messages or validation states */
 /** @var array $steps Array of step names/keys passed from controller */
+/** @var array|null $personalNamesForJs Contains 'firstName' and 'surname' for JS auto-fill, passed from controller */
 
 $this->title = 'Applicant Update Wizard';
 $this->params['breadcrumbs'][] = ['label' => 'App Applicant Users', 'url' => ['index']];
@@ -174,12 +175,6 @@ foreach ($steps as $index => $stepKey) {
             'id' => 'wizard-previous-btn',
             'style' => $isFirstStep ? 'display:none;' : ''
         ]);
-        // Skip button - initially hidden, shown by JS for specific steps
-        echo Html::button('Skip', [
-            'class' => 'btn btn-link me-2', // Using btn-link for a less prominent look, adjust as needed
-            'id' => 'wizard-skip-btn',
-            'style' => 'display:none;' // Initially hidden
-        ]);
         echo Html::button('Next', [
             'class' => 'btn btn-primary me-2',
             'id' => 'wizard-next-btn',
@@ -197,6 +192,17 @@ foreach ($steps as $index => $stepKey) {
         ?>
     </div>
 </div>
+
+<?php
+// Make personal names available for JavaScript auto-fill functionality
+if (isset($personalNamesForJs) && $personalNamesForJs !== null) {
+    $this->registerJs(
+        "window.wizardConfig = window.wizardConfig || {}; window.wizardConfig.personalNames = " . json_encode($personalNamesForJs) . ";",
+        \yii\web\View::POS_HEAD, // Register in head to be available early
+        'wizard-personal-names-config' // Unique ID for this script block
+    );
+}
+?>
 
 <!-- Success Modal -->
 <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">

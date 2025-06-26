@@ -132,14 +132,14 @@ class ApplicantUserController extends Controller
 
             $currentStepIndex = array_search($currentProcessingStep, $this->_steps);
             $action = '';
-            $isSkippingStep = false; // Flag for skip action
+            // $isSkippingStep = false; // Flag for skip action - REMOVED
 
             if (isset($postData['wizard_next'])) $action = 'next';
             elseif (isset($postData['wizard_save'])) $action = 'save';
-            elseif (isset($postData['wizard_skip_step'])) {
-                $action = 'next'; // Skip behaves like 'next' in terms of progression
-                $isSkippingStep = true;
-            }
+            // elseif (isset($postData['wizard_skip_step'])) { // REMOVED
+            //    $action = 'next'; // Skip behaves like 'next' in terms of progression
+            //    $isSkippingStep = true;
+            // }
 
             if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
@@ -165,26 +165,26 @@ class ApplicantUserController extends Controller
                 // Initialize $workExpModel for this step.
                 // It's okay if $applicant_user_id is not yet final, or $appApplicantModel->applicant_id is not yet set.
                 // We are saving to session. Linkage will happen in performFinalSave.
-                if ($isSkippingStep) {
-                    // If skipping, mark as valid and clear any previous session data for this step
-                    $session->remove($stepSessionKey); // Remove data for this step from session
-                    $isValid = true;
-                } else {
-                    $workExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
-                    if ($workExpModel->load($postData)) {
-                        if ($workExpModel->validate()) {
-                            $session->set($stepSessionKey, $workExpModel->getAttributes());
-                            $isValid = true;
-                        } else {
-                            $isValid = false;
-                            // Cleaner error message, Html::errorSummary is self-explanatory
-                            $stepRenderData['message'] = Html::errorSummary($workExpModel);
-                        }
+                // if ($isSkippingStep) { // REMOVED SKIP LOGIC
+                    // // If skipping, mark as valid and clear any previous session data for this step
+                    // $session->remove($stepSessionKey); // Remove data for this step from session
+                    // $isValid = true;
+                // } else { // REMOVED ELSE FOR SKIP LOGIC
+                $workExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
+                if ($workExpModel->load($postData)) {
+                    if ($workExpModel->validate()) {
+                        $session->set($stepSessionKey, $workExpModel->getAttributes());
+                        $isValid = true;
                     } else {
                         $isValid = false;
-                        $stepRenderData['message'] = 'Could not load work experience data.';
+                        // Cleaner error message, Html::errorSummary is self-explanatory
+                        $stepRenderData['message'] = Html::errorSummary($workExpModel);
                     }
+                } else {
+                    $isValid = false;
+                    $stepRenderData['message'] = 'Could not load work experience data.';
                 }
+                // } // REMOVED BRACE FOR SKIP LOGIC
             } elseif ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
                 $model->profile_image_file = UploadedFile::getInstance($model, 'profile_image_file');
@@ -403,6 +403,15 @@ class ApplicantUserController extends Controller
         }
         // Add similar for AppApplicant if it has scenarios for its step.
 
+        // Prepare personal names for JS auto-fill if available
+        $personalNamesForJs = null;
+        $personalDetailsSessionData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []);
+        if (!empty($personalDetailsSessionData['first_name']) || !empty($personalDetailsSessionData['surname'])) {
+            $personalNamesForJs = [
+                'firstName' => $personalDetailsSessionData['first_name'] ?? '',
+                'surname' => $personalDetailsSessionData['surname'] ?? '',
+            ];
+        }
 
         return $this->render('update-wizard', [
             'currentStep' => $currentStep,
@@ -411,6 +420,7 @@ class ApplicantUserController extends Controller
             'workExpModel' => $workExpModel, // Pass work experience model to the main wizard view
             'stepData' => $stepRenderData,
             'steps' => $this->_steps,
+            'personalNamesForJs' => $personalNamesForJs, // Pass names for JS
         ]);
     }
 
