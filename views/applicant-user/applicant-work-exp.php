@@ -1,5 +1,6 @@
 <?php
 
+use app\models\AppApplicant;
 use app\models\AppApplicantWorkExp;
 use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
@@ -13,9 +14,9 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 /** @var string $currentStepForView The key of the current step being rendered */
 /** @var array $existingWorkExperiences Array of past work experiences, passed from controller */
 
-
+$appApplicant = AppApplicant::findOne(['applicant_user_id' => $_GET['applicant_user_id']]);
 $existingWorkExperiences = AppApplicantWorkExp::find()
-    ->where(['applicant_id' => $_GET['applicant_id'] ?? ''])
+    ->where(['applicant_id' => $appApplicant['applicant_id']])
     ->orderBy(['year_from' => SORT_DESC]) // Optional: order them
     ->asArray() // Pass as array to view
     ->all();
