@@ -137,6 +137,9 @@ foreach ($steps as $index => $stepKey) {
                 echo $this->render($currentStep, [
                     'model' => $model,
                     'appApplicantModel' => $appApplicantModel,
+                    // Ensure $educationModel is defined in this scope before passing
+                    // It is passed from ApplicantUserController to this update-wizard.php view
+                    'educationModel' => isset($educationModel) ? $educationModel : null,
                     'stepData' => $stepData,
                     'currentStepForView' => $currentStep // Pass the actual current step key
                 ]);
