@@ -1,5 +1,6 @@
 <?php
 
+use app\models\AppApplicantWorkExp;
 use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 
@@ -12,7 +13,12 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 /** @var string $currentStepForView The key of the current step being rendered */
 /** @var array $existingWorkExperiences Array of past work experiences, passed from controller */
 
-// $this->title = 'Work Experience';
+
+$existingWorkExperiences = AppApplicantWorkExp::find()
+    ->where(['applicant_id' => $_GET['applicant_id'] ?? ''])
+    ->orderBy(['year_from' => SORT_DESC]) // Optional: order them
+    ->asArray() // Pass as array to view
+    ->all();
 ?>
 
 <div class="applicant-work-exp-form">
@@ -48,12 +54,15 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
         ['Yes' => 'Yes', 'No' => 'No'],
         ['prompt' => 'Is this experience relevant?']
     ) ?>
-    <?php // Alternatively, use a checkbox for boolean 'relevant' if DB field is boolean/tinyint ?>
-    <?php // echo $form->field($workExpModel, 'relevant')->checkbox() ?>
+    <?php // Alternatively, use a checkbox for boolean 'relevant' if DB field is boolean/tinyint 
+    ?>
+    <?php // echo $form->field($workExpModel, 'relevant')->checkbox() 
+    ?>
 
 
     <?php // Hidden input to identify the current step being submitted, handled by JS now
-    // echo Html::hiddenInput('current_step_validated', $currentStepForView); ?>
+    // echo Html::hiddenInput('current_step_validated', $currentStepForView); 
+    ?>
 
     <?php ActiveForm::end(); ?>
 
@@ -108,7 +117,7 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
 // Or for handling the inline edit table (to be implemented in next phase)
 $this->registerJs("
     // console.log('Work Experience step view loaded.');
-    // console.log('Existing experiences:', " . json_encode($existingWorkExperiences ?? []) . ");
+    console.log('Existing experiences:', " . json_encode($existingWorkExperiences ?? []) . ");
 
     // Edit Work Experience
     $('#existing-work-experience-table').on('click', '.btn-edit-work-exp', function() {
@@ -118,7 +127,7 @@ $this->registerJs("
 
         // Store the experience_id on the form for potential update logic later
         \$form.data('editing-experience-id', experienceId);
-        // Potentially change a button text or add an indicator that we are in "edit mode"
+        // Potentially change a button text or add an indicator that we are in edit mode
         // For now, just fetching and populating.
 
         $.ajax({

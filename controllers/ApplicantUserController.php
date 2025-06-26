@@ -479,28 +479,12 @@ class ApplicantUserController extends Controller
                 if ($applicant_user_id) {
                     $appUser = AppApplicantUser::findOne($applicant_user_id);
                     if ($appUser && $appUser->appApplicant) {
-                                // User request: "Make the where clause to fetch where applicant_id = Yii::$app->request->get('applicant_user_id')"
-                                // The $applicant_user_id variable in this scope is initialized from Yii::$app->request->get('applicant_user_id')
-                                // if present, otherwise it falls back to session.
-                                // For strict adherence to "Yii::$app->request->get('applicant_user_id')", we should fetch it directly here.
-                                $requested_applicant_user_id_for_exp = Yii::$app->request->get('applicant_user_id');
-                                if ($requested_applicant_user_id_for_exp) {
-                                    $jsonResponse['existingWorkExperiences'] = AppApplicantWorkExp::find()
-                                        ->where(['applicant_id' => $requested_applicant_user_id_for_exp]) // Query as per user's literal request
-                                        ->orderBy(['year_from' => SORT_DESC])
-                                        ->asArray()
-                                        ->all();
-                                } else {
-                                    // If applicant_user_id is not in GET, behavior is undefined by request. Default to empty.
-                                    $jsonResponse['existingWorkExperiences'] = [];
-                                }
-                            } else {
-                                // If $appUser or $appUser->appApplicant is not found (e.g., invalid $applicant_user_id from session/param)
-                                $jsonResponse['existingWorkExperiences'] = [];
+                        $jsonResponse['existingWorkExperiences'] = AppApplicantWorkExp::find()
+                            ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
+                            ->orderBy(['year_from' => SORT_DESC]) // Optional: order them
+                            ->asArray() // Pass as array to view
+                            ->all();
                     }
-                        } else {
-                             // If $applicant_user_id (from param/session) itself is null/empty
-                            $jsonResponse['existingWorkExperiences'] = [];
                 }
             }
             return $jsonResponse;
@@ -552,25 +536,13 @@ class ApplicantUserController extends Controller
 
         // For initial page load, if the current step is work experience, fetch existing experiences
         if ($currentStep === self::STEP_WORK_EXPERIENCE && $applicant_user_id) {
-            $appUser = AppApplicantUser::findOne($applicant_user_id); // $applicant_user_id is from param/session
+            $appUser = AppApplicantUser::findOne($applicant_user_id);
             if ($appUser && $appUser->appApplicant) {
-                // User request: "Make the where clause to fetch where applicant_id = Yii::$app->request->get('applicant_user_id')"
-                // For strict adherence, we fetch directly from GET for this specific query.
-                $requested_applicant_user_id_for_exp = Yii::$app->request->get('applicant_user_id');
-                if ($requested_applicant_user_id_for_exp) {
-                    $renderParams['existingWorkExperiences'] = AppApplicantWorkExp::find()
-                        ->where(['applicant_id' => $requested_applicant_user_id_for_exp]) // Query as per user's literal request
-                        ->orderBy(['year_from' => SORT_DESC])
-                        ->asArray()
-                        ->all();
-                } else {
-                    // If applicant_user_id is not in GET for non-AJAX, default to empty or respect $applicant_user_id from session.
-                    // The original code relied on $appUser (from session if GET was missing)
-                    // For consistency with the AJAX change, if GET is missing, show empty.
-                    $renderParams['existingWorkExperiences'] = [];
-                }
-            } else {
-                 $renderParams['existingWorkExperiences'] = [];
+                $renderParams['existingWorkExperiences'] = AppApplicantWorkExp::find()
+                    ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
+                    ->orderBy(['year_from' => SORT_DESC])
+                    ->asArray()
+                    ->all();
             }
         }
         return $this->render('update-wizard', $renderParams);
@@ -757,44 +729,5 @@ class ApplicantUserController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
-    }
-
-    public function actionGetWorkExperienceDetails($experience_id)
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        if (empty($experience_id)) {
-            throw new \yii\web\BadRequestHttpException('Experience ID cannot be empty.');
-        }
-
-        $workExpModel = AppApplicantWorkExp::findOne($experience_id);
-
-        if ($workExpModel === null) {
-            throw new NotFoundHttpException('The requested work experience record does not exist.');
-        }
-
-        // Security check: Ensure the work experience belongs to the current applicant context
-        // This is a simplified check. In a full system, you might need to verify against
-        // the logged-in user's applicant_id or the applicant_id stored in the wizard session.
-        $session = Yii::$app->session;
-        $wizardDataKeyPrefix = 'applicant_wizard_';
-        $applicant_user_id = $session->get($wizardDataKeyPrefix . 'applicant_user_id');
-
-        if ($applicant_user_id) {
-            $appUser = AppApplicantUser::findOne($applicant_user_id);
-            if ($appUser && $appUser->appApplicant && $appUser->appApplicant->applicant_id == $workExpModel->applicant_id) {
-                // Authorized: The work experience belongs to the current applicant in the wizard
-                return $workExpModel->getAttributes();
-            } else {
-                // Log the attempt for security audit if needed
-                Yii::warning("Unauthorized attempt to access experience_id {$experience_id} by applicant_user_id {$applicant_user_id}.", __METHOD__);
-                throw new \yii\web\ForbiddenHttpException('You are not authorized to access this record.');
-            }
-        } else {
-            // If no applicant_user_id in session, this is likely an invalid state or direct access attempt
-            // For a wizard context, this should ideally not happen if prior steps are enforced.
-            Yii::warning("Attempt to access experience_id {$experience_id} without applicant_user_id in session.", __METHOD__);
-            throw new \yii\web\ForbiddenHttpException('Applicant session not found. Access denied.');
-        }
     }
 }
