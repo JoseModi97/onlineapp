@@ -19,11 +19,13 @@ class ApplicantUserController extends Controller
 {
     const STEP_PERSONAL_DETAILS = 'personal-details';
     const STEP_APPLICANT_SPECIFICS = 'applicant-specifics';
+    const STEP_EDUCATION_DETAILS = 'education-details'; // New step
     const STEP_ACCOUNT_SETTINGS = 'account-settings';
 
     private $_steps = [
         self::STEP_PERSONAL_DETAILS,
         self::STEP_APPLICANT_SPECIFICS,
+        self::STEP_EDUCATION_DETAILS, // New step added here
         self::STEP_ACCOUNT_SETTINGS,
     ];
 
@@ -78,9 +80,37 @@ class ApplicantUserController extends Controller
 
         $model = $applicant_user_id ? $this->findModel($applicant_user_id) : new AppApplicantUser();
         $appApplicantModel = ($applicant_user_id && $model->appApplicant) ? $model->appApplicant : new AppApplicant();
-        if ($applicant_user_id && !$appApplicantModel->applicant_user_id) {
-            $appApplicantModel->applicant_user_id = $applicant_user_id;
+        // Initialize $educationModel to null or a new instance
+        $educationModel = new AppApplicantEducation();
+
+        if ($applicant_user_id && $appApplicantModel->isNewRecord && $model->appApplicant && $model->appApplicant->applicant_id) {
+             $appApplicantModel = $model->appApplicant; // If $model has a linked AppApplicant, use it
+        } elseif ($applicant_user_id && $appApplicantModel->isNewRecord && $model->applicant_user_id) {
+            // If AppApplicant is still new, try to load it or set its applicant_user_id for creation
+            $relatedAppApplicant = AppApplicant::findOne(['applicant_id' => $model->applicant_user_id]);
+            if ($relatedAppApplicant) {
+                $appApplicantModel = $relatedAppApplicant;
+            } else {
+                 $appApplicantModel->applicant_user_id = $model->applicant_user_id;
+            }
         }
+        // Now, specifically for the education step, try to load existing or prepare new
+        if ($currentStep === self::STEP_EDUCATION_DETAILS) {
+            if ($appApplicantModel && $appApplicantModel->applicant_id) {
+                $loadedEducationModel = AppApplicantEducation::find()
+                    ->where(['applicant_id' => $appApplicantModel->applicant_id])
+                    ->orderBy(['education_id' => SORT_DESC])
+                    ->one();
+                if ($loadedEducationModel) {
+                    $educationModel = $loadedEducationModel;
+                }
+                // Ensure applicant_id is set if we are creating a new education record
+                if ($educationModel->isNewRecord) {
+                    $educationModel->applicant_id = $appApplicantModel->applicant_id;
+                }
+            }
+        }
+
 
         $stepRenderData = ['message' => null];
         $activeRenderStep = $currentStep;
@@ -131,6 +161,79 @@ class ApplicantUserController extends Controller
                     $session->set($stepSessionKey, $appApplicantModel->getAttributes());
                     $isValid = true;
                 } else { $isValid = false; if(empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Applicant Specifics.'; }
+            } elseif ($currentProcessingStep === self::STEP_EDUCATION_DETAILS) {
+                // Load existing or new education model for the step
+                // $educationModel is already initialized/loaded at the beginning of actionUpdateWizard
+                // and further refined by loadModelsForStep if it's a GET request for the step.
+                // For POST, we might need to re-ensure we have the correct one.
+
+                // Re-fetch or ensure $educationModel is correctly scoped for POST processing
+                // This logic mirrors parts of loadModelsForStep to ensure $educationModel is the right one to process for POST
+                if ($appApplicantModel && $appApplicantModel->applicant_id) {
+                    $educationModelToProcess = AppApplicantEducation::find()
+                        ->where(['applicant_id' => $appApplicantModel->applicant_id])
+                        ->orderBy(['education_id' => SORT_DESC])
+                        ->one();
+                    if (!$educationModelToProcess) {
+                        $educationModelToProcess = new AppApplicantEducation(['applicant_id' => $appApplicantModel->applicant_id]);
+                    }
+                } else {
+                    // This case should ideally not happen if personal details (step 1) are enforced
+                    $educationModelToProcess = new AppApplicantEducation();
+                    $stepRenderData['message'] = 'Applicant ID is missing. Cannot process education details.';
+                    $isValid = false;
+                }
+
+                if ($isValid !== false) { // Proceed if applicant_id was found
+                    // Handle file upload for education certificate
+                    $educationModelToProcess->education_certificate_file = UploadedFile::getInstance($educationModelToProcess, 'education_certificate_file');
+                    $oldCertificateFile = $educationModelToProcess->isNewRecord ? null : $educationModelToProcess->file_name;
+
+                    if ($educationModelToProcess->load($postData)) {
+                        if (!$educationModelToProcess->education_certificate_file && !$educationModelToProcess->isNewRecord) {
+                            // Preserve old file if no new one is uploaded and it's an existing record
+                             $educationModelToProcess->file_name = $postData['AppApplicantEducation']['file_name_hidden'] ?? $oldCertificateFile;
+                             // Assuming 'file_name_hidden' stores the current file name if no new upload
+                        }
+
+                        if ($educationModelToProcess->validate()) {
+                            if ($educationModelToProcess->education_certificate_file) {
+                                $uploadPath = Yii::getAlias('@webroot/uploads/education_certificates/');
+                                if (!is_dir($uploadPath)) {
+                                    FileHelper::createDirectory($uploadPath);
+                                }
+                                $uniqueFilename = Yii::$app->security->generateRandomString() . '.' . $educationModelToProcess->education_certificate_file->extension;
+                                $filePath = $uploadPath . $uniqueFilename;
+                                if ($educationModelToProcess->education_certificate_file->saveAs($filePath)) {
+                                    if ($oldCertificateFile && $oldCertificateFile !== $uniqueFilename && file_exists($uploadPath . $oldCertificateFile)) {
+                                        @unlink($uploadPath . $oldCertificateFile);
+                                    }
+                                    $educationModelToProcess->file_name = $uniqueFilename;
+                                    $educationModelToProcess->file_path = 'uploads/education_certificates/' . $uniqueFilename; // Relative path for DB
+                                } else {
+                                    $isValid = false;
+                                    $educationModelToProcess->addError('education_certificate_file', 'Could not save the uploaded certificate.');
+                                    $stepRenderData['message'] = $stepRenderData['message'] ?? 'Error saving certificate.';
+                                }
+                            }
+                            if ($isValid !== false) { // Re-check isValid after potential file error
+                                // Explicitly set education_id for session if it's an update to ensure correct model is fetched later
+                                $attributesToSave = $educationModelToProcess->getAttributes();
+                                if (!$educationModelToProcess->isNewRecord && $educationModelToProcess->education_id) {
+                                    $attributesToSave['education_id'] = $educationModelToProcess->education_id;
+                                }
+                                $session->set($stepSessionKey, $attributesToSave);
+                                $isValid = true;
+                            }
+                        } else {
+                            $isValid = false;
+                            $stepRenderData['message'] = $stepRenderData['message'] ?? 'Please correct errors in Education Details.';
+                        }
+                    } else {
+                        $isValid = false;
+                        $stepRenderData['message'] = $stepRenderData['message'] ?? 'Could not load education details data.';
+                    }
+                }
             } elseif ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
                 $model->profile_image_file = UploadedFile::getInstance($model, 'profile_image_file');
@@ -187,7 +290,7 @@ class ApplicantUserController extends Controller
                     $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
                     if ($request->isAjax) {
                         try { // *** ADDED TRY-CATCH BLOCK START ***
-                            list($nextModel, $nextAppApplicantModel) = $this->loadModelsForStep(
+                            list($nextModel, $nextAppApplicantModel, $nextEducationModel) = $this->loadModelsForStep(
                                 $activeRenderStep,
                                 $applicant_user_id,
                                 $session,
@@ -200,13 +303,18 @@ class ApplicantUserController extends Controller
                                  return ['success' => false, 'message' => "Error: The content for step '".Html::encode($activeRenderStep)."' is unavailable (view file missing)."];
                             }
 
-                            $html = $this->renderAjax($activeRenderStep, [
+                            $renderParams = [
                                 'model' => $nextModel,
                                 'appApplicantModel' => $nextAppApplicantModel,
                                 'stepData' => [],
                                 'steps' => $this->_steps,
                                 'currentStepForView' => $activeRenderStep
-                            ]);
+                            ];
+                            if ($activeRenderStep === self::STEP_EDUCATION_DETAILS) {
+                                $renderParams['educationModel'] = $nextEducationModel;
+                            }
+
+                            $html = $this->renderAjax($activeRenderStep, $renderParams);
                             return ['success' => true, 'html' => $html, 'nextStep' => $activeRenderStep, 'applicant_user_id' => $applicant_user_id];
 
                         } catch (NotFoundHttpException $e) {
@@ -254,6 +362,14 @@ class ApplicantUserController extends Controller
                         $errors = $model->getErrors();
                     } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
                         $errors = $appApplicantModel->getErrors();
+                    } elseif ($currentProcessingStep === self::STEP_EDUCATION_DETAILS) {
+                        // $educationModelToProcess should be in scope from the POST handling block above
+                        if (isset($educationModelToProcess)) {
+                            $errors = $educationModelToProcess->getErrors();
+                        } else {
+                            // Fallback if $educationModelToProcess somehow isn't set, though unlikely
+                            $errors = ['education_form' => ['There was an issue loading education data.']];
+                        }
                     }
                     return ['success' => false, 'errors' => $errors, 'message' => $stepRenderData['message'] ?? 'Validation failed.'];
                 }
@@ -273,44 +389,92 @@ class ApplicantUserController extends Controller
             }
 
             $session->set($wizardDataKeyPrefix . 'current_step', $targetStep);
-            list($renderModel, $renderAppApplicantModel) = $this->loadModelsForStep($targetStep, $applicant_user_id, $session, $wizardDataKeyPrefix);
+            list($renderModel, $renderAppApplicantModel, $renderEducationModel) = $this->loadModelsForStep($targetStep, $applicant_user_id, $session, $wizardDataKeyPrefix);
 
-            $html = $this->renderAjax($targetStep, [
+            $renderParams = [
                 'model' => $renderModel,
                 'appApplicantModel' => $renderAppApplicantModel,
                 'stepData' => [],
                 'steps' => $this->_steps,
                 'currentStepForView' => $targetStep
-            ]);
+            ];
+            if ($targetStep === self::STEP_EDUCATION_DETAILS) {
+                $renderParams['educationModel'] = $renderEducationModel;
+            }
+
+            $html = $this->renderAjax($targetStep, $renderParams);
             return ['success' => true, 'html' => $html, 'currentStep' => $targetStep, 'applicant_user_id' => $applicant_user_id];
         } else {
             $session->set($wizardDataKeyPrefix . 'current_step', $currentStep);
         }
 
-        list($model, $appApplicantModel) = $this->loadModelsForStep($currentStep, $applicant_user_id, $session, $wizardDataKeyPrefix, $model, $appApplicantModel);
+        list($model, $appApplicantModel, $educationModel) = $this->loadModelsForStep($currentStep, $applicant_user_id, $session, $wizardDataKeyPrefix, $model, $appApplicantModel);
 
         if ($currentStep === self::STEP_PERSONAL_DETAILS) {
             $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
+        } elseif ($currentStep === self::STEP_EDUCATION_DETAILS) {
+            // Add scenario for education model if needed, e.g.
+            // if ($educationModel) $educationModel->scenario = AppApplicantEducation::SCENARIO_WIZARD;
         } elseif ($currentStep === self::STEP_ACCOUNT_SETTINGS) {
             $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
         }
 
-        return $this->render('update-wizard', [
+        $renderParams = [
             'currentStep' => $currentStep,
             'model' => $model,
             'appApplicantModel' => $appApplicantModel,
             'stepData' => $stepRenderData,
             'steps' => $this->_steps,
-        ]);
+        ];
+        if ($currentStep === self::STEP_EDUCATION_DETAILS) {
+            $renderParams['educationModel'] = $educationModel;
+        }
+        return $this->render('update-wizard', $renderParams);
     }
 
-    protected function loadModelsForStep($step, $applicant_user_id, $session, $wizardDataKeyPrefix, $existingModel = null, $existingAppApplicantModel = null)
+use app\models\AppApplicantEducation; // Added for the new step
+
+// ... (other use statements) ...
+
+class ApplicantUserController extends Controller
+{
+    // ... (constants and _steps array are already updated) ...
+
+    protected function loadModelsForStep($step, $applicant_user_id, $session, $wizardDataKeyPrefix, $existingModel = null, $existingAppApplicantModel = null, $existingEducationModel = null) // Added $existingEducationModel
     {
         $model = $existingModel ?? ($applicant_user_id ? $this->findModel($applicant_user_id) : new AppApplicantUser());
         $appApplicantModel = $existingAppApplicantModel ?? (($applicant_user_id && $model->appApplicant) ? $model->appApplicant : new AppApplicant());
+        $educationModel = $existingEducationModel; // Use existing if passed
 
-        if ($applicant_user_id && !$appApplicantModel->applicant_user_id) {
-            $appApplicantModel->applicant_user_id = $applicant_user_id;
+        if ($applicant_user_id && $appApplicantModel->isNewRecord && $model->appApplicant && $model->appApplicant->applicant_id) {
+             $appApplicantModel = $model->appApplicant;
+        } elseif ($applicant_user_id && $appApplicantModel->isNewRecord && $model->applicant_user_id) {
+            // Try to load AppApplicant if not properly linked initially
+            $relatedAppApplicant = AppApplicant::findOne(['applicant_id' => $model->applicant_user_id]);
+            if ($relatedAppApplicant) {
+                $appApplicantModel = $relatedAppApplicant;
+            } else {
+                $appApplicantModel->applicant_user_id = $model->applicant_user_id; // Set for new AppApplicant
+            }
+        }
+
+
+        if ($step === self::STEP_EDUCATION_DETAILS) {
+            if (!$educationModel) { // Only fetch if not already provided (e.g. from initial controller load)
+                if ($appApplicantModel && $appApplicantModel->applicant_id) {
+                    $educationModel = AppApplicantEducation::find()
+                        ->where(['applicant_id' => $appApplicantModel->applicant_id])
+                        ->orderBy(['education_id' => SORT_DESC]) // Get the most recent one
+                        ->one();
+                }
+                if (!$educationModel) {
+                    $educationModel = new AppApplicantEducation();
+                }
+            }
+            // Ensure applicant_id is set on the education model if AppApplicant model is available
+            if ($educationModel && $educationModel->isNewRecord && $appApplicantModel && $appApplicantModel->applicant_id) {
+                 $educationModel->applicant_id = $appApplicantModel->applicant_id;
+            }
         }
 
         $stepSessionKey = $wizardDataKeyPrefix . 'data_step_' . $step;
@@ -321,11 +485,18 @@ class ApplicantUserController extends Controller
                 $model->setAttributes($stepDataFromSession, false);
             } elseif ($step === self::STEP_APPLICANT_SPECIFICS) {
                 $appApplicantModel->setAttributes($stepDataFromSession, false);
+            } elseif ($step === self::STEP_EDUCATION_DETAILS && $educationModel) {
+                $educationModel->setAttributes($stepDataFromSession, false);
+                // If education_id is in session data, ensure it's set, useful for updates
+                if (isset($stepDataFromSession['education_id']) && $stepDataFromSession['education_id']) {
+                    $educationModel->education_id = $stepDataFromSession['education_id'];
+                    $educationModel->setIsNewRecord(false); // Crucial for updates
+                }
             } elseif ($step === self::STEP_ACCOUNT_SETTINGS) {
                 $model->setAttributes($stepDataFromSession, false);
             }
         }
-        return [$model, $appApplicantModel];
+        return [$model, $appApplicantModel, $educationModel]; // Return education model
     }
 
     protected function performFinalSave($applicant_user_id, $session, $wizardDataKeyPrefix)
@@ -340,16 +511,52 @@ class ApplicantUserController extends Controller
 
         $personalDetailsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []);
         $applicantSpecificsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_APPLICANT_SPECIFICS, []);
+        $educationData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_EDUCATION_DETAILS, []); // New
         $accountSettingsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_ACCOUNT_SETTINGS, []);
 
-        $finalModel->setAttributes($accountSettingsData, false);
+        $finalModel->setAttributes($accountSettingsData, false); // Personal details are part of $finalModel already
         $finalAppApplicantModel->setAttributes($applicantSpecificsData, false);
-        $finalModel->scenario = AppApplicantUser::SCENARIO_DEFAULT;
+        $finalModel->scenario = AppApplicantUser::SCENARIO_DEFAULT; // Reset scenario for full validation if needed
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
+            // Save AppApplicantUser ($finalModel) and AppApplicant ($finalAppApplicantModel) first
             if ($finalModel->save()) {
+                $finalAppApplicantModel->applicant_user_id = $finalModel->applicant_user_id; // Ensure link for new AppApplicant
                 if ($finalAppApplicantModel->save()) {
+                    // Now handle AppApplicantEducation
+                    if (!empty($educationData)) {
+                        $educationModelToSave = null;
+                        if (!empty($educationData['education_id'])) {
+                            $educationModelToSave = AppApplicantEducation::findOne([
+                                'education_id' => $educationData['education_id'],
+                                'applicant_id' => $finalAppApplicantModel->applicant_id // Ensure it belongs to this applicant
+                            ]);
+                        }
+
+                        if (!$educationModelToSave) {
+                            $educationModelToSave = new AppApplicantEducation();
+                        }
+
+                        $educationModelToSave->applicant_id = $finalAppApplicantModel->applicant_id; // Crucial link
+
+                        // Unset education_id from $educationData before mass assignment if it was new, to avoid issues
+                        // For existing, it's fine as it's part of the model's attributes.
+                        // The main risk is if education_id was in session for a "new" record that somehow didn't get saved.
+                        // However, load() should handle this fine.
+
+                        $educationModelToSave->load($educationData, ''); // Load without form name
+
+                        // File path and name are already in $educationData from the step processing
+                        // No need to handle file moving here, only model attribute saving.
+
+                        if (!$educationModelToSave->save()) {
+                            $transaction->rollBack();
+                            Yii::error($educationModelToSave->errors);
+                            return ['success' => false, 'message' => 'Error saving education details: ' . Html::errorSummary($educationModelToSave), 'errors' => $educationModelToSave->getErrors()];
+                        }
+                    }
+                    // If all saves are successful
                     $transaction->commit();
                     foreach ($this->_steps as $s) { $session->remove($wizardDataKeyPrefix . 'data_step_' . $s); }
                     $session->remove($wizardDataKeyPrefix . 'applicant_user_id');

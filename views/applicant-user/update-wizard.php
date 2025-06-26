@@ -26,6 +26,7 @@ $this->params['breadcrumbs'][] = $this->title;
 $stepTitles = [
     'personal-details' => 'Personal Details',
     'applicant-specifics' => 'Applicant Specifics',
+    'education-details' => 'Education Details', // New Step Title
     'account-settings' => 'Account Settings',
 ];
 
@@ -131,14 +132,17 @@ foreach ($steps as $index => $stepKey) {
         if ($currentStep && is_string($currentStep) && in_array($currentStep, $steps)) {
             $stepViewFile = Yii::getAlias('@app/views/applicant-user/' . $currentStep . '.php');
             if (file_exists($stepViewFile)) {
-                // Pass currentStepForView to the partial, so it knows which step it is
-                // This is useful if a single partial view file is used for multiple similar steps.
-                echo $this->render($currentStep, [
+                $renderParams = [
                     'model' => $model,
                     'appApplicantModel' => $appApplicantModel,
                     'stepData' => $stepData,
                     'currentStepForView' => $currentStep // Pass the actual current step key
-                ]);
+                ];
+                // Add educationModel if it's the education details step and the model is passed from controller
+                if ($currentStep === 'education-details' && isset($educationModel)) {
+                    $renderParams['educationModel'] = $educationModel;
+                }
+                echo $this->render($currentStep, $renderParams);
             } else {
                 echo '<div class="alert alert-warning">Step view not found: ' . Html::encode($currentStep) . '</div>';
             }

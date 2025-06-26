@@ -29,7 +29,7 @@ use app\models\AppEducationSystem; // Added
  */
 class AppApplicantEducation extends \yii\db\ActiveRecord
 {
-
+    public $education_certificate_file; // Virtual attribute for file upload
 
     /**
      * {@inheritdoc}
@@ -46,10 +46,14 @@ class AppApplicantEducation extends \yii\db\ActiveRecord
     {
         return [
             [['year_from', 'year_to', 'grade_per_student', 'points_score', 'pi_gpa', 'relevant', 'remarks', 'name_as_per_cert', 'file_path', 'file_name'], 'default', 'value' => null],
-            [['education_id', 'applicant_id', 'edu_system_code', 'institution_name', 'edu_ref_no', 'grade', 'cert_source'], 'required'],
+            // 'education_id' is likely an auto-incrementing PK, should not be required for new records.
+            // It is required in DB schema but Yii handles it for new records if auto PK.
+            // If it's not auto PK, then it must be provided. Assuming it's auto PK for now.
+            [['applicant_id', 'edu_system_code', 'institution_name', 'edu_ref_no', 'grade', 'cert_source'], 'required'],
             [['education_id', 'applicant_id', 'edu_system_code', 'year_from', 'year_to', 'points_score', 'pi_gpa', 'cert_source'], 'default', 'value' => null],
             [['education_id', 'applicant_id', 'edu_system_code', 'year_from', 'year_to', 'points_score', 'pi_gpa', 'cert_source'], 'integer'],
             [['institution_name', 'grade', 'grade_per_student'], 'string', 'max' => 80],
+            [['education_certificate_file'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, jpeg, pdf, doc, docx', 'maxSize' => 1024 * 1024 * 5], // Max 5MB
             [['edu_ref_no'], 'string', 'max' => 50],
             [['relevant'], 'string', 'max' => 8],
             [['remarks', 'file_name'], 'string', 'max' => 255],
@@ -84,6 +88,7 @@ class AppApplicantEducation extends \yii\db\ActiveRecord
             'file_path' => 'File Path',
             'file_name' => 'File Name',
             'cert_source' => 'Cert Source',
+            'education_certificate_file' => 'Certificate Upload', // Label for the file input
         ];
     }
 
