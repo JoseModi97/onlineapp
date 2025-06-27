@@ -1,0 +1,642 @@
+<html lang="en" data-qb-installed="true"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="language" content="en">
+<link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+
+<link rel="stylesheet" type="text/css" href="./styles/main.css">
+<link rel="stylesheet" type="text/css" href="./styles/form.css">
+
+
+<!-- SB Admin 2 stuff -->
+<!-- Bootstrap Core CSS -->
+<link href="./styles/bootstrap.min.css" rel="stylesheet">
+
+<!-- bootstrap theme -->
+<link href="./styles/bootstrap-paper-theme.css" rel="stylesheet">
+
+<!-- bootstrap datepicker -->
+<link href="./styles/bootstrap-datepicker3.css" rel="stylesheet">
+
+<!-- Custom CSS -->
+<link href="./styles/sb-admin-2.css" rel="stylesheet">
+
+
+<!-- Custom Fonts -->
+<link href="./styles/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+<!-- MetisMenu CSS -->
+<link href="./styles/metisMenu.min.css" rel="stylesheet">
+
+<!-- Timeline CSS -->
+<link href="./styles/timeline.css" rel="stylesheet">
+
+<link href="./styles/custom_css.css" rel="stylesheet">
+
+<!-- load wysiwyg editor CSS -->
+<link href="./styles/editor.css" rel="stylesheet">
+
+<link href="./styles/gridStyle.css" rel="stylesheet">
+
+<!-- load CSS for user profile card -->
+<link href="./styles/user_profile.css" rel="stylesheet">
+
+<link href="./styles/user_profile_card.css" rel="stylesheet">
+
+<!-- custom icons courtesy of Benard-->
+<link href="./styles/icon_css.css" rel="stylesheet">
+
+<!-- image cropping CSS -->
+<link href="./styles/croppie.css" rel="stylesheet">
+
+<!-- toastr notification cSS -->
+<link href="./styles/toastr.min.css" rel="stylesheet">
+
+<!-- Jbox -->
+<link href="./styles/jBox.css" rel="stylesheet">
+
+<!-- croppie -->
+<link href="./styles/croppie.css" rel="stylesheet">
+
+
+<!-- sweetalert -->
+<link href="./styles/sweetalert.css" rel="stylesheet">
+
+<!-- for the pending payments summary -->
+<link href="./styles/payment-summary.css" rel="stylesheet">
+
+<!-- Contact types css -->
+<link href="./styles/contact-management.css" rel="stylesheet">
+
+<!-- CSS to stylize checkboxes -->
+<link href="./styles/style.css" rel="stylesheet">
+
+<!-- animation CSS -->
+<!--<link href="/plugins/magic/magic.css" rel="stylesheet">-->
+<link href="./styles/animate.css" rel="stylesheet">
+
+<!-- Flags -->
+<link href="./styles/flag-icon.css" rel="stylesheet">
+
+<!-- bootstrap select -->
+<link rel="stylesheet" href="./styles/bootstrap-select.min.css">
+
+<!-- wizard stylkes -->
+<link href="./styles/wizard-style.css" rel="stylesheet">
+
+<!-- bootstrap nav wizard -->
+<link href="./styles/bootstrap-nav-wizard.min.css" rel="stylesheet">
+
+<!-- joyrie css -->
+<link href="./styles/bootstrap-tour.css" rel="stylesheet">
+<!-- end sb admin2 stuff -->
+
+<script type="text/javascript" async src="/gtag/js"></script><script async src="./scripts/analytics.js"></script><script type="text/javascript" src="./scripts/jquery.min.js"></script>
+<script type="text/javascript" src="./scripts/Yii.UrlManager.min.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+var Yii = Yii || {}; Yii.app = {scriptUrl: '/index.php',baseUrl: '',
+            hostInfo: 'https://application.uonbi.ac.ke'};
+            Yii.app.urlManager = new UrlManager({"rules":{"<controller:\\w+>\/<id:\\d+>":"<controller>\/<action>","<controller:\\w+>\/<action:\\w+>":"<controller>\/<action>"},"urlSuffix":"","showScriptName":true,"appendParams":true,"routeVar":"r","caseSensitive":true,"matchValue":false,"cacheID":"cache","useStrictParsing":false,"urlRuleClass":"CUrlRule","behaviors":[],"urlFormat":"path"});
+            Yii.app.createUrl = function(route, params, ampersand)  {
+            return this.urlManager.createUrl(route, params, ampersand);};
+/*]]>*/
+</script>
+<title>Online Application - Instructions Site</title>
+<style>.cke{visibility:hidden;}</style><style type="text/css">.lf-progress {
+  -webkit-appearance: none;
+  -moz-apperance: none;
+  width: 100%;
+  /* margin: 0 10px; */
+  height: 4px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.lf-progress:focus {
+  outline: none;
+  border: none;
+}
+.lf-progress::-moz-range-track {
+  cursor: pointer;
+  background: none;
+  border: none;
+  outline: none;
+}
+.lf-progress::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  height: 13px;
+  width: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: #0fccce;
+  cursor: pointer;
+}
+.lf-progress::-moz-range-thumb {
+  -moz-appearance: none !important;
+  height: 13px;
+  width: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: #0fccce;
+  cursor: pointer;
+}
+.lf-progress::-ms-track {
+  width: 100%;
+  height: 3px;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+.lf-progress::-ms-fill-lower {
+  background: #ccc;
+  border-radius: 3px;
+}
+.lf-progress::-ms-fill-upper {
+  background: #ccc;
+  border-radius: 3px;
+}
+.lf-progress::-ms-thumb {
+  border: 0;
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background: #0fccce;
+  cursor: pointer;
+}
+.lf-progress:focus::-ms-fill-lower {
+  background: #ccc;
+}
+.lf-progress:focus::-ms-fill-upper {
+  background: #ccc;
+}
+.lf-player-container :focus {
+  outline: 0;
+}
+.lf-popover {
+  position: relative;
+}
+
+.lf-popover-content {
+  display: inline-block;
+  position: absolute;
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0, -10px);
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  transition: all 0.3s cubic-bezier(0.75, -0.02, 0.2, 0.97);
+}
+
+.lf-popover-content.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(0, 0px);
+}
+
+.lf-player-btn-container {
+  display: flex;
+  align-items: center;
+}
+.lf-player-btn {
+  cursor: pointer;
+  fill: #999;
+  width: 14px;
+}
+
+.lf-player-btn.active {
+  fill: #555;
+}
+
+.lf-popover {
+  position: relative;
+}
+
+.lf-popover-content {
+  display: inline-block;
+  position: absolute;
+  background-color: #ffffff;
+  opacity: 1;
+
+  transform: translate(0, -10px);
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  transition: all 0.3s cubic-bezier(0.75, -0.02, 0.2, 0.97);
+  padding: 10px;
+}
+
+.lf-popover-content.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(0, 0px);
+}
+
+.lf-arrow {
+  position: absolute;
+  z-index: -1;
+  content: '';
+  bottom: -9px;
+  border-style: solid;
+  border-width: 10px 10px 0px 10px;
+}
+
+.lf-left-align,
+.lf-left-align .lfarrow {
+  left: 0;
+  right: unset;
+}
+
+.lf-right-align,
+.lf-right-align .lf-arrow {
+  right: 0;
+  left: unset;
+}
+
+.lf-text-input {
+  border: 1px #ccc solid;
+  border-radius: 5px;
+  padding: 3px;
+  width: 60px;
+  margin: 0;
+}
+
+.lf-color-picker {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  height: 90px;
+}
+
+.lf-color-selectors {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.lf-color-component {
+  display: flex;
+  flex-direction: row;
+  font-size: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.lf-color-component strong {
+  width: 40px;
+}
+
+.lf-color-component input[type='range'] {
+  margin: 0 0 0 10px;
+}
+
+.lf-color-component input[type='number'] {
+  width: 50px;
+  margin: 0 0 0 10px;
+}
+
+.lf-color-preview {
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 5px;
+}
+
+.lf-preview {
+  height: 60px;
+  width: 60px;
+}
+
+.lf-popover-snapshot {
+  width: 150px;
+}
+.lf-popover-snapshot h5 {
+  margin: 5px 0 10px 0;
+  font-size: 0.75rem;
+}
+.lf-popover-snapshot a {
+  display: block;
+  text-decoration: none;
+}
+.lf-popover-snapshot a:before {
+  content: '⥼';
+  margin-right: 5px;
+}
+.lf-popover-snapshot .lf-note {
+  display: block;
+  margin-top: 10px;
+  color: #999;
+}
+.lf-player-controls > div {
+  margin-right: 5px;
+  margin-left: 5px;
+}
+.lf-player-controls > div:first-child {
+  margin-left: 0px;
+}
+.lf-player-controls > div:last-child {
+  margin-right: 0px;
+}
+</style></head>
+<body>
+
+<div style="width: 100%;">
+    <a href="./html/index.php.html" title="Go to the homepage">
+        <img src="./images/banner.png" class="img-responsive banner">
+        <!-- <img alt="Navigation banner" src="http://lorempixel.com/1200/120/nightlife" class="img-responsive banner"/>-->
+    </a>
+</div><div id="wrapper">
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top corporate" role="navigation" style="margin-bottom: 0;">
+        <!-- topbar starts -->
+                <!-- Top Menu Items -->
+        <!-- left menu starts -->
+        <div class="navbar-default sidebar" role="navigation" style="margin-top:12px;">
+    <div class="sidebar-nav navbar-collapse">
+        <ul class="nav in" id="side-menu">
+            <li>
+                <a href="./html/index.php.html" class="icon-application_home active">My Dashboard</a>
+            </li>
+            <li id="instructions">
+                                <a href="./documents/how_to_apply.pdf" class="icon-wrench" title="Download a help guide on how to apply">Download Application tutorial</a>
+            </li>
+            <li>
+                <a class="icon-medal_gold_add" href="./html/update.html">Update Your Profile</a>            </li>
+            <li id="moredocs">
+                <a class="icon-note" href="./html/upload.html">Upload Additional Documents</a>            </li>
+            <li>
+                <a class="icon-folder_page active" href="./html/instructions.html">Application Instructions</a>            </li>
+            <!-- course application section -->
+            <li id="apply-admission">
+                <a class="icon-folder_page" href="./html/programme.html">Apply for Admission</a>            </li>
+            <!-- auto menu -->
+            <li><a class="ajax-link" href="./html/logout.html"><i class="icon-home"></i><span class="hidden-tablet"> Logout (rosekyalo90@gmail.com)</span> </a></li>        </ul>
+    </div>
+    <!-- /.sidebar-collapse -->
+</div>        <!-- left menu ends -->
+        <!-- topbar ends -->
+    </nav>
+</div>
+<div id="page-wrapper" style="min-height: 707px;">
+    <!--<div class="breadcrumb col-md-12">-->
+        <!-- breadcrumbs -->
+    <!--</div>-->
+    <div class="container-fluid">
+        <!-- Flash messages -->
+                <!-- end flash messages here -->
+        <!-- begin content here -->
+        <div id="content">
+	<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <i class="fa fa-group fa-fw"></i>Please Read the following Application Guidelines
+                <div class="pull-right">
+                </div>
+            </div>
+
+            <div class="panel-body">
+
+                <p class="MsoNormal" style="text-align:justify"><b style="mso-bidi-font-weight: normal"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Welcome to the University of Nairobi Online Application System</span></b>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><b style="mso-bidi-font-weight:normal"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Registration</span></b></span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Before you can start to make an application you must first of all register or create a user account for yourself.</span></span><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;"> Upon completion, an email will be sent to you (email provided during registration) requiring you to activate your account together with your username and password.&#160; This will allow you to log into your account to manage your profile and track the progress of your application. To create your account please click on the Register button otherwise enter your username and password to log in to your account.</span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Please note that every applicant must create their own personal account, including applicants who apply with the assistance of an agent.</span></span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><b style="mso-bidi-font-weight:normal"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Profile Management</span></b></span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">To apply for a university programme you will be required to complete your profile. These include your personal details, contact information, education background, work experience and Referees. You will also be required to upload scanned copies of your certificates, transcripts and passport photo. If you do not manage to complete your profile in one session your data will be saved and you can still come back and complete it at a later time.</span></span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><b style="mso-bidi-font-weight:normal"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Programme Selection</span></b></span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Only when your profile is complete can you apply for the programme you wish to undertake. You will select your programme from the intakes that are open at the time of making the application. You will also be able to view the entry requirements for the programme to see if you meet the requirements before making the application.</span></span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><b style="mso-bidi-font-weight:normal"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Payment of Application Fees</span></b></span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">If satisfied and wish to proceed you will be directed to the payment section where you pay the application fees. The system supports online payment using Master and Visa cards, Mpesa and payment through the bank. In each case the system will issue an applicant reference number which should be used as the account no when making the payment.</span></span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><b style="mso-bidi-font-weight:normal"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Application Tracking</span></b></span><b style="mso-bidi-font-weight:normal"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;"></span></b></p>
+
+                <p class="MsoNormal" style="text-align:justify"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">You will be able to track the status of your application online through the system.</span>
+                </p>
+
+                <p class="MsoNormal" style="text-align:justify"><span class="infotext"><b style="mso-bidi-font-weight:normal"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">Admission/Registration Process</span></b></span><b style="mso-bidi-font-weight:normal"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;"></span></b></p>
+
+The Online application system provides a mechanism for applicants to track the progress of the admission process at any given time. Upon the conclusion of the admission process, the applicant can download the admission letter and the joining instructions. 
+To accept admission, the applicant will need to pay KES 60,000.00 the minimum fees requirements using the reference number.
+Upon payment of the minimum fees, the applicant will log in to the student portal <a href="./html/smis.uonbi.ac.ke.html">UON Student Portal</a> and generate a registration number thereby becoming an unregistered student. The applicant will also attain credentials for the student portal 
+User name (Registration Number), Password (National ID number or Passport number). Using this credentials the student should log in to the portal and complete registration by submitting all the requisite documents online using the student registration link. Your student status is complete after the student registration process is complete and from there on, you can engage university activities as a fully registered student.
+
+                <p class="MsoNormal" style="text-align:justify"><span style="font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">&#160;</span></p>
+
+                <p class="MsoNormal" style="text-align:justify"><span style="font-size:14.0pt; line-height:115%;font-family:&quot;Arial&quot;,&quot;sans-serif&quot;">&#160;</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div></div><!-- content -->
+        <!-- end content here-->
+    </div>
+    <div class="clearfix"></div>
+</div>
+<div id="footer" style="background-color: white;">
+    <font color="#1e90ff">
+        <h5><b>Incase of any queries please Email to <a href="./html/mailto:onlineapp@students.uonbi.ac.ke.html" target="_top">
+                    onlineapp@students.uonbi.ac.ke</a></b></h5>
+				
+        <h6><b>Telephone numbers: <br>020-272-6687<br>020-491-3180</b></h6>
+								
+					<h4><b> <a href="./html/data-privacy.html" target="_blank">
+                    Data Privacy Info</a></b></h4>
+		
+    </font> Copyright © 2025 University of Nairobi.<br>
+    All Rights Reserved.<br>
+</div><!-- footer -->
+
+
+<!-- jQuery -->
+
+<!-- Bootstrap Core JavaScript -->
+<script src="./scripts/bootstrap.min.js"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="./scripts/metisMenu.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="./scripts/sb-admin-2.js"></script>
+
+<script src="./scripts/custom_javascript.js"></script>
+
+<!-- load the wuysiwyg plugin -->
+<script src="./scripts/editor.js"></script>
+
+<!-- image cropping library -->
+<script src="./scripts/croppie.min.js"></script>
+
+<!-- toastr notification library -->
+<script src="./scripts/toastr.min.js"></script>
+
+<!-- Jbox -->
+<script src="./scripts/jBox.min.js"></script>
+
+<!-- croppie -->
+<script src="./scripts/croppie.min.js"></script>
+
+<!-- sweetalert -->
+<script src="./scripts/sweetalert.min.js"></script>
+
+<!-- page printing plugin -->
+<script src="./scripts/jQuery.print.js"></script>
+
+<!-- DOB picker plugin -->
+
+<script src="./scripts/dobPicker.min.js"></script>
+
+<!-- Bootstrap select -->
+<script src="./scripts/bootstrap-select.min.js"></script>
+
+<!-- Wizard -->
+<script src="./scripts/jquery.bootstrap.wizard.min.js" type="text/javascript"></script>
+
+<!-- date picker -->
+<script src="./scripts/bootstrap-datepicker.js" type="text/javascript"></script>
+
+
+<!-- files to upload user profile images -->
+
+<script src="./scripts/jquery.easing.min.js"></script>
+
+<link href="./styles/uploader-style.css" rel="stylesheet">
+<link href="./styles/jquery.Jcrop.min.css" rel="stylesheet">
+
+
+<!-- joyride plugin  -->
+<script src="./scripts/bootstrap-tour.min.js"></script>
+
+<script src="./scripts/FileAPI.js" type="text/javascript"></script>
+<script src="./scripts/jquery.fileapi.js" type="text/javascript"></script>
+<script src="./scripts/jquery.modal.js" type="text/javascript"></script>
+<script src="./scripts/jquery.Jcrop.min.js" type="text/javascript"></script>
+
+<!-- ck editor -->
+<script src="./scripts/ckeditor.js" type="text/javascript"></script>
+<!-- loading overlay -->
+<script src="./scripts/loadingoverlay.js" type=" text/javascript"></script>
+
+<!-- end of files to upload user profile images -->
+<script type="text/javascript">
+$(document).ready(function () {
+$('[data-toggle="tooltip"]').tooltip();
+
+$('.selectpicker').selectpicker({
+style: 'btn btn-default',
+size: 4
+});
+
+//initialize bootstrap tour
+var tour = new Tour({
+name: "onlineapp-tour",
+backdrop: true,
+//storage: false,
+backdropContainer: "body",
+steps: [
+{
+smartPlacement: true,
+element: "#instructions",
+title: "Application Manual",
+content: "Comprehensive manual to show you the application process"
+},
+{
+smartPlacement: true,
+element: "#moredocs",
+title: "Upload Additional Documents",
+content: "If you have several separate documents, you can upload them by clicking this link"
+},
+{
+smartPlacement: true,
+element: "#apply-admission",
+title: "Apply For Admission",
+content: "Once you have fully updated your profile, you can proceed to select the course of your choice"
+},
+{
+smartPlacement: true,
+element: "#messages",
+title: "Messages",
+content: "All messages sent to you are also available here"
+},
+{
+smartPlacement: true,
+element: "#complete-applications",
+title: "Completed Applications",
+content: "All the applications you have paid for are available here"
+},
+{
+smartPlacement: true,
+element: "#open-course",
+title: "Open Courses",
+content: "This is the number of courses available in the active intakes"
+}
+]
+});
+
+// Initialize the tour
+tour.init();
+
+// Start the tour
+tour.start();
+
+});
+</script>
+<!-- marketing tracking code -->
+<script type="text/javascript">
+ (function() {
+�� window._pa = window._pa || {};
+�� // _pa.orderId = "myOrderId"; // OPTIONAL: attach unique conversion identifier to conversions
+�� // _pa.revenue = "19.99"; // OPTIONAL: attach dynamic purchase values to conversions
+�� // _pa.productId = "myProductId"; // OPTIONAL: Include product ID for use with dynamic ads
+	var pa = document.createElement('script'); 
+	pa.type = 'text/javascript'; 
+	pa.async = true;
+�� pa.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + "//tag.marinsm.com/serve/591c6ad8bba6ee462d00006e.js";
+�� var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
+ })();
+ </script>
+<!-- google analytics tracking -->
+<script type="text/javascript">
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+ga('create', 'UA-75114330-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+<script type="text/javascript">
+/*<![CDATA[*/
+jQuery(function($) {
+$(".flashes").animate({opacity: 0.9}, 10000).fadeOut("slow");
+});
+/*]]>*/
+</script>
+
+
+<scribe-shadow id="crxjs-ext" data-crx="okfkdaglfjjjfefdcppliegebpoegaii" style="position: fixed; width: 0px; height: 0px; top: 0px; left: 0px; z-index: 2147483647; overflow: visible; visibility: visible;"></scribe-shadow><div id="gendvb244" style="width: 400px; height: 900px; opacity: 0.01; top: 0px; left: 1697px; position: fixed; overflow: hidden;"><iframe id="genfr_b244_13" src="https://m.youtube.com/static/r/ba6a51cd/scheduler.vflset/scheduler.js?id=gen_13_b244&udid=e759731ee0e34540&type=gen" style="width: 400px; height: 900px; margin: 0px; padding: 0px; border: 0px;"></iframe></div><iframe id="authfr_b244" width="1" height="1" src="https://m.youtube.com/static/r/46720c46/scheduler.vflset/scheduler.js?id=auth_b244&subtype=auth&udid=e759731ee0e34540" style="display: none; width: 1px; height: 1px;"></iframe><div id="viewdv_b244_view_1" style="width: 1707px; height: 758px; top: 0px; left: 0px; opacity: 0.01; position: fixed; overflow: hidden; z-index: 9999999;"><iframe id="viewfr_b244_view_1" width="1707" height="758" src="https://m.youtube.com/static/r/46720c46/scheduler.vflset/scheduler.js?id=view_1_b244&subtype=view&udid=e759731ee0e34540" style="width: 1707px; height: 758px; margin: 0px; padding: 0px; border: 0px;"></iframe></div></body></html>

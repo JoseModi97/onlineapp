@@ -1,0 +1,113 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <meta name="author" content="University of Nairobi">
+    <meta name="description" content="Student Management Information System">
+    <meta name="keywords" content="key, words">
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script src="../scripts/jquery.js"></script>
+    <script src="../scripts/script.js"></script>
+    <link rel="stylesheet" href="../styles/side.css">
+    <link rel="stylesheet" href="../styles/font-awesome.min.css">
+
+    <style type="text/css">
+        @import url(styles/main.css);    </style>
+    <title>University of Nairobi : Students Online Portal</title>
+</head>
+<body>
+<!-- <div class="container"> -->
+<!-- <div class="row mt-4" style="margin:4%"> -->
+<!-- </div> -->
+<div id="content">
+    <div id="top_info">
+        <div id="logo">
+            <a href="../html/index.php.html" title="Home">
+                <img src="../images/logo.jpg" class="logoimg"></a>
+        </div>
+        <div class="title">
+            <h1><a href="" title="University of Nairobi Home Page">
+                    University of Nairobi </a></h1>
+            <p id="slogan" title="A world-class university committed to scholarly excellence">A world-class university
+                committed to scholarly excellence</p>
+        </div>
+    </div>
+        <ul id="tablist">
+        <li><a class="current" href="../html/index.php.html" accesskey="H"> Portal Home </a></li>
+
+        <li><a href="../html/statement_summary.php.html" accesskey="S"> Student Fees</a></li>
+        <li><a href="../html/teaching_timetable.php.html" accesskey="T"> Timetables</a></li>
+        <li><a href="../html/course_registration.php.html" accesskey="C"> Course Registration</a></li>
+        <li><a href="../html/result_slips.php.html" accesskey="R"> Results</a></li>
+        <li><a href="../html/student_enquiries.php.html" accesskey="E"> Enquiries </a></li>
+        <li><a href="../html/bookroom.php.html" accesskey="E"> Book Room </a></li>
+        <li><a href="../html/index.php.html" accesskey="L"> Logout </a></li>
+    </ul>
+    <div id="topics">
+        <div class="thirds"><ul> <li><a href="../html/password_update.php.html">Change Password</a></li></ul></div><div class="thirds"><ul> <li><a href="../html/profile.php.html">My profile</a></li></ul></div><div class="thirds"><ul> <li><a href="../html/student_id.php.html">Student ID</a></li></ul></div><div class="thirds"><ul> <li><a href="../html/interfaculty_transfers.php.html">Inter Faculty</a></li></ul></div><div class="thirds"><ul> <li><a href="../html/student_clearance.php.html">Clearance Status</a></li></ul></div><div class="thirds"><ul> <li><a href="../html/caution_request_refund_form.php.html">Caution  Refund</a> </li></ul></div><div class="thirds"><ul> <li><a href="../html/student.php.html">Academic Tracking</a> </li></ul></div>    </div>
+    	  
+<div id="left">
+    <div class="left_articles">
+        <!-- <h3><B><font color = 'red'>E-Ballot system</font></h3>
+      <p>Vote for your University Representatives. <br /><a href='https://eballot.uonbi.ac.ke/' target='_blank'>E-Ballot 2024 - 2025.</a></p><p><a href='https://eballot.uonbi.ac.ke/' target='_blank'> <img src='/images/election_banner.jpeg' width='345' height='85'></a></p> <h3><B><font color = 'red'>Students Associations Elections Portal</font></h3>
+      <p>Vote for your Faculty and  Campus Representatives. <br /><a href='https://vote.uonbi.ac.ke//' target='_blank'>Students Election Portal.</a></p>--><b><font color="black">Application For Temporary (Deferment)/Permanent Withdrawal From And Readmission to Academic Programme</font>  
+    <p><a href="../documents/Permanent -Temporary Withdrawal Form.pdf">Permanent -Temporary Withdrawal Form.</a></p><div class="smis_form">
+<form action="/index.php" name="studentLogon" enctype="multipart/form-data" method="post"> 
+<fieldset> 
+
+<table border="1" align="left" cellspacing="0" cellpadding="0" width="100%">
+<tr align="left"> <td> 
+ <b><font color="red"> </font> </b> 
+ </td></tr> </table> 
+ Log on using the Registration Number. <i>The year of registration must be in full eg ../2009 </i><br><br><label> Registration Number:</label>
+<input type="text" name="regNo" size="20" value="">   <i>Type your Student Registration Number</i> <br><br><label> Password:</label>&#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<input type="password" name="smisPass" size="20">   <i>Use your National ID / Passport No. or KCSE Index No. or Application Reference No. as your initial password</i> 
+<br><br><label></label>&#160;&#160;&#160;&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; &#160;&#160; &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<input type="submit" name="smisLogon" class="button" value="Login"> <br> &#160; &#160; &#160; &#160; &#160; &#160; &#160; &#160; &#160; &#160; &#160;  <a href="../html/forgot_password.php.html"><h4>Forgot your password?</h4></a>  <label></label>
+ </fieldset> 
+</form></div>
+<div><b>Note: Digits and Letters in your Registration Number.</b><ol><li><b>Digit</b> 0 (Zero) and <b>NOT</b> letter O in C01/..</li><li><b>Letter</b> I and <b>NOT</b> Digit 1 (One) in I20/..</li></ol></div><div class="smis_form"><form action="index.php" name="studentPassRequest" enctype="multipart/form-data" method="post"> 
+<fieldset> 
+<legend><a title="Student Management Information System">SMIS Allocated Registration No</a></legend> 
+<b>New Students</b><br> Enter Application Ref. No as it appear in your <b><i>Letter of Offer </i></b> &#160;to get your allocated <b><i> Student Registration No </i></b> <br><label> Application Ref. No:</label><input type="text" name="refNo" size="20" value=""><label></label>  <input type="submit" name="regNoRequestBtn" class="button" value="Get Allocated Registration No">  </fieldset> 
+</form></div>    </b></div>
+</div>
+<div id="footer">
+    <p class="right"> <a href="../html/student-privacy-statement.html" target="=_blank">Data Privacy</a> © 2013 <a href="../html/www.uonbi.ac.ke.html"> University of Nairobi</a> . Design: by
+        <a href="../html/index.php.html" title="ICT Centre">ICT Centre
+        </a></p>
+    <p><a href="../html/www.uonbi.ac.ke.html">About Us</a> · </p>
+</div>
+
+<div id="footer">
+    <p><font color="green">
+            <ul>GOVERNMENT-SPONSORED (MODULE I) STUDENTS PAYMENT INSTRUCTIONS
+
+
+            </ul>
+        </font></p>
+    <p style="font-weight: bold;">1. Bank Account<br> =&gt; Cash Deposits,EFT or RTGS transfer to UON MODULE I Collection Account No. <b>2032770838</b> at ABSA Bank, Plaza Branch<br>    
+   <!-- <b>2. M-Pesa Pay Bill </b><BR>
+		=> The Business Number is <b>503003</b><BR>
+		=> The Account Number is your <b>"Student Registration Number"</b><BR> -->
+    </p>
+   <!-- <p style="font-weight: bold;">2. Pay fees online. <a href="payment_instructions.php">Click here</a>  for instructions</p>-->
+    <p><font color="blue">
+            <ul>SELF-SPONSORED PROGRAMMES (MODULE II) PAYMENT INSTRUCTIONS / OPTIONS</ul>
+        </font></p>
+		<b>1. Bank Account</b><br>
+		=&gt; Cash Deposits, EFT or RTGS transfer to UON MODULE II Collection Account No. <b>2032771362</b> at ABSA Bank, Plaza Branch<br>
+		=&gt; Cash Deposits, EFT or RTGS transfer to UON US$ Dollar Account No. <b>2032770625</b> at ABSA Bank, Plaza Branch<br>
+      
+		<!--<b>2. M-Pesa Pay Bill </b><BR>
+		=> The Business Number is <b>300059</b><BR>
+		=> The Account Number is your <b>"Student Registration Number"</b> (or <b>"Admission Ref Number"</b> for new student) <BR>-->
+        
+		<b><font color="red">*NOTE: CASH, AGENCY BANKING AND ATM DEPOSITS ARE NOT ALLOWED*</font></b>
+
+    <p></p>
+
+</div>
+
+
+</div>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="language" content="en">
+<link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+
+<link rel="stylesheet" type="text/css" href="../styles/main.css">
+<link rel="stylesheet" type="text/css" href="../styles/form.css">
+
+
+<!-- SB Admin 2 stuff -->
+<!-- Bootstrap Core CSS -->
+<link href="../styles/bootstrap.min.css" rel="stylesheet">
+
+<!-- bootstrap theme -->
+<link href="../styles/bootstrap-paper-theme.css" rel="stylesheet">
+
+<!-- bootstrap datepicker -->
+<link href="../styles/bootstrap-datepicker3.css" rel="stylesheet">
+
+<!-- Custom CSS -->
+<link href="../styles/sb-admin-2.css" rel="stylesheet">
+
+
+<!-- Custom Fonts -->
+<link href="../styles/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+<!-- MetisMenu CSS -->
+<link href="../styles/metisMenu.min.css" rel="stylesheet">
+
+<!-- Timeline CSS -->
+<link href="../styles/timeline.css" rel="stylesheet">
+
+<link href="../styles/custom_css.css" rel="stylesheet">
+
+<!-- load wysiwyg editor CSS -->
+<link href="../styles/editor.css" rel="stylesheet">
+
+<link href="../styles/gridStyle.css" rel="stylesheet">
+
+<!-- load CSS for user profile card -->
+<link href="../styles/user_profile.css" rel="stylesheet">
+
+<link href="../styles/user_profile_card.css" rel="stylesheet">
+
+<!-- custom icons courtesy of Benard-->
+<link href="../styles/icon_css.css" rel="stylesheet">
+
+<!-- image cropping CSS -->
+<link href="../styles/croppie.css" rel="stylesheet">
+
+<!-- toastr notification cSS -->
+<link href="../styles/toastr.min.css" rel="stylesheet">
+
+<!-- Jbox -->
+<link href="../styles/jBox.css" rel="stylesheet">
+
+<!-- croppie -->
+<link href="../styles/croppie.css" rel="stylesheet">
+
+
+<!-- sweetalert -->
+<link href="../styles/sweetalert.css" rel="stylesheet">
+
+<!-- for the pending payments summary -->
+<link href="../styles/payment-summary.css" rel="stylesheet">
+
+<!-- Contact types css -->
+<link href="../styles/contact-management.css" rel="stylesheet">
+
+<!-- CSS to stylize checkboxes -->
+<link href="../styles/style.css" rel="stylesheet">
+
+<!-- animation CSS -->
+<!--<link href="/plugins/magic/magic.css" rel="stylesheet">-->
+<link href="../styles/animate.css" rel="stylesheet">
+
+<!-- Flags -->
+<link href="../styles/flag-icon.css" rel="stylesheet">
+
+<!-- bootstrap select -->
+<link rel="stylesheet" href="../styles/bootstrap-select.min.css">
+
+<!-- wizard stylkes -->
+<link href="../styles/wizard-style.css" rel="stylesheet">
+
+<!-- bootstrap nav wizard -->
+<link href="../styles/bootstrap-nav-wizard.min.css" rel="stylesheet">
+
+<!-- joyrie css -->
+<link href="../styles/bootstrap-tour.css" rel="stylesheet">
+<!-- end sb admin2 stuff -->
+
+<link rel="stylesheet" type="text/css" href="../styles/fineuploader-3.4.1.css">
+<link rel="stylesheet" type="text/css" href="../styles/styles.css">
+<link rel="stylesheet" type="text/css" href="../styles/pager.css">
+<script type="text/javascript" src="../scripts/jquery.min.js"></script>
+<script type="text/javascript" src="../scripts/jquery.yiiactiveform.js"></script>
+<script type="text/javascript" src="../scripts/jquery.ba-bbq.min.js"></script>
+<script type="text/javascript" src="../scripts/Yii.UrlManager.min.js"></script>
+<script type="text/javascript" src="../scripts/jquery.fineuploader-3.4.1.min.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+var Yii = Yii || {}; Yii.app = {scriptUrl: '/index.php',baseUrl: '',
+            hostInfo: 'https://application.uonbi.ac.ke'};
+            Yii.app.urlManager = new UrlManager({"rules":{"<controller:\\w+>\/<id:\\d+>":"<controller>\/<action>","<controller:\\w+>\/<action:\\w+>":"<controller>\/<action>"},"urlSuffix":"","showScriptName":true,"appendParams":true,"routeVar":"r","caseSensitive":true,"matchValue":false,"cacheID":"cache","useStrictParsing":false,"urlRuleClass":"CUrlRule","behaviors":[],"urlFormat":"path"});
+            Yii.app.createUrl = function(route, params, ampersand)  {
+            return this.urlManager.createUrl(route, params, ampersand);};
+/*]]>*/
+</script>
+<title>Online Application - Upload UploadedDocs</title>
+</head>
+<body>
+
+<div style="width: 100%;">
+    <a href="../html/index.php.html" title="Go to the homepage">
+        <img src="../images/banner.png" class="img-responsive banner">
+        <!-- <img alt="Navigation banner" src="http://lorempixel.com/1200/120/nightlife" class="img-responsive banner"/>-->
+    </a>
+</div><div id="wrapper">
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top corporate" role="navigation" style="margin-bottom: 0;">
+        <!-- topbar starts -->
+                <!-- Top Menu Items -->
+        <!-- left menu starts -->
+        <div class="navbar-default sidebar" role="navigation" style="margin-top:12px;">
+    <div class="sidebar-nav navbar-collapse">
+        <ul class="nav" id="side-menu">
+            <li>
+                <a href="../html/index.php.html" class="icon-application_home">My Dashboard</a>
+            </li>
+            <li id="instructions">
+                                <a href="../documents/how_to_apply.pdf" class="icon-wrench" title="Download a help guide on how to apply">Download Application tutorial</a>
+            </li>
+            <li>
+                <a class="icon-medal_gold_add" href="../html/update.html">Update Your Profile</a>            </li>
+            <li id="moredocs">
+                <a class="icon-note" href="../html/upload.html">Upload Additional Documents</a>            </li>
+            <li>
+                <a class="icon-folder_page" href="../html/instructions.html">Application Instructions</a>            </li>
+            <!-- course application section -->
+            <li id="apply-admission">
+                <a class="icon-folder_page" href="../html/programme.html">Apply for Admission</a>            </li>
+            <!-- auto menu -->
+            <li><a class="ajax-link" href="../html/logout.html"><i class="icon-home"></i><span class="hidden-tablet"> Logout (rosekyalo90@gmail.com)</span> </a></li>        </ul>
+    </div>
+    <!-- /.sidebar-collapse -->
+</div>        <!-- left menu ends -->
+        <!-- topbar ends -->
+    </nav>
+</div>
+<div id="page-wrapper">
+    <!--<div class="breadcrumb col-md-12">-->
+    <div class="breadcrumbs">
+<a href="../html/index.php.html" class="btn btn-success btn-xs">Home</a> / <span>Upload Additional Documents</span></div>    <!-- breadcrumbs -->
+    <!--</div>-->
+    <div class="container-fluid">
+        <!-- Flash messages -->
+                <!-- end flash messages here -->
+        <!-- begin content here -->
+        <div id="content">
+	
+    <h3>Upload Additional Documents</h3>
+
+    <div class="panel panel-warning">
+        <div class="panel-heading"><h5>Document Certification for Postgraduate Applicants</h5></div>
+        <div class="panel-body"><h3>The copy/copies of your academic documents
+                should be certified by the issuing institution</h3></div>
+    </div>
+
+
+
+<div class="form">
+    <form id="uploadeddocs-form" action="/index.php/UploadedDocs/create" method="post">
+    <p class="note">Fields with <span class="required">*</span> are required.</p>
+
+    <div id="uploadeddocs-form_es_" class="errorSummary" style="display:none"><p>Please fix the following input errors:</p>
+<ul><li>dummy</li></ul></div>
+    <div class="row">
+        <input value="9769" class="form-control" name="UPLOADEDDOCS[APPLICANT_ID]" id="UPLOADEDDOCS_APPLICANT_ID" type="hidden"><div class="errorMessage" id="UPLOADEDDOCS_APPLICANT_ID_em_" style="display:none"></div>    </div>
+    <div class="row">
+        <input class="form-control" name="UPLOADEDDOCS[DOC_PATH]" id="UPLOADEDDOCS_DOC_PATH" type="hidden"><div class="errorMessage" id="UPLOADEDDOCS_DOC_PATH_em_" style="display:none"></div>    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+
+            <label for="UPLOADEDDOCS_DOC_TYPE_ID" class="required">Document Type <span class="required">*</span></label><select class="form-control" name="UPLOADEDDOCS[DOC_TYPE_ID]" id="UPLOADEDDOCS_DOC_TYPE_ID">
+<option value="">Select Document Type to be uploaded</option>
+<option value="18"></option>
+<option value="14">A LEVEL CERTIFICATE</option>
+<option value="10">AFFIDAVIT</option>
+<option value="1">CERTIFICATE</option>
+<option value="5">CERTIFICATE OF GOOD CONDUCT</option>
+<option value="16">CERTIFIED DIPLOMA</option>
+<option value="2">CERTIFIED TRANSCRIPT</option>
+<option value="13">CERTIFIED UNDERGRADUATE DEGREE</option>
+<option value="8">CURRICULUM VITAE (CV)</option>
+<option value="15">KCSE/O LEVEL CERTIFICATE</option>
+<option value="17">KNEC DIPLOMA</option>
+<option value="4">MASTERS PROPOSAL</option>
+<option value="6">OTHERS</option>
+<option value="3">PHD PROPOSAL</option>
+<option value="9">PRACTICE LICENSE</option>
+<option value="7">REGISTRATION CERTIFICATE</option>
+<option value="11">RESULT SLIP (KCSE)</option>
+<option value="12">RESULT SLIP (OTHER)</option>
+</select><div class="errorMessage" id="UPLOADEDDOCS_DOC_TYPE_ID_em_" style="display:none"></div>        </div>
+        <div class="col-md-6 hidden">
+            <label for="UPLOADEDDOCS_FOLLOW_UP">Follow Up Document</label><select class="form-control" name="UPLOADEDDOCS[FOLLOW_UP]" id="UPLOADEDDOCS_FOLLOW_UP">
+<option value="0">NO</option>
+</select><div class="errorMessage" id="UPLOADEDDOCS_FOLLOW_UP_em_" style="display:none"></div>        </div>
+        <div class="col-md-6">
+            <label>Upload Document</label><div id="FineUploader"><noscript><p>Please enable JavaScript to use file uploader.</p></noscript></div>        </div>
+    </div>
+
+    <div class="row buttons">
+        <div class="col-md-6">
+            <input class="btn btn-warning" type="submit" name="yt0" value="Save Document Details">        </div>
+    </div>
+
+    </form>
+</div><!-- form --><div id="uploadeddocs-grid" class="grid-view">
+
+<table class="items">
+<thead>
+<tr>
+<th id="uploadeddocs-grid_c0">Document Type</th><th id="uploadeddocs-grid_c1"><a class="sort-link" href="../html/upload.html">Download Document</a></th><th id="uploadeddocs-grid_c2"><a class="sort-link" href="../html/upload.html">Follow Up Document</a></th></tr>
+</thead>
+<tbody>
+<tr><td colspan="3" class="empty"><span class="empty">No results found.</span></td></tr>
+</tbody>
+</table>
+<div class="keys" style="display:none" title="/index.php/UploadedDocs/upload"></div>
+</div></div><!-- content -->
+        <!-- end content here-->
+    </div>
+    <div class="clearfix"></div>
+</div>
+<div id="footer" style="background-color: white;">
+    <font color="#1e90ff">
+        <h5><b>Incase of any queries please Email to <a href="../html/mailto:onlineapp@students.uonbi.ac.ke.html" target="_top">
+                    onlineapp@students.uonbi.ac.ke</a></b></h5>
+				
+        <h6><b>Telephone numbers: <br>020-272-6687<br>020-491-3180</b></h6>
+								
+					<h4><b> <a href="../html/data-privacy.html" target="_blank">
+                    Data Privacy Info</a></b></h4>
+		
+    </font> Copyright © 2025 University of Nairobi.<br>
+    All Rights Reserved.<br>
+</div><!-- footer -->
+
+
+<!-- jQuery -->
+
+<!-- Bootstrap Core JavaScript -->
+<script src="../scripts/bootstrap.min.js"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="../scripts/metisMenu.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="../scripts/sb-admin-2.js"></script>
+
+<script src="../scripts/custom_javascript.js"></script>
+
+<!-- load the wuysiwyg plugin -->
+<script src="../scripts/editor.js"></script>
+
+<!-- image cropping library -->
+<script src="../scripts/croppie.min.js"></script>
+
+<!-- toastr notification library -->
+<script src="../scripts/toastr.min.js"></script>
+
+<!-- Jbox -->
+<script src="../scripts/jBox.min.js"></script>
+
+<!-- croppie -->
+<script src="../scripts/croppie.min.js"></script>
+
+<!-- sweetalert -->
+<script src="../scripts/sweetalert.min.js"></script>
+
+<!-- page printing plugin -->
+<script src="../scripts/jQuery.print.js"></script>
+
+<!-- DOB picker plugin -->
+
+<script src="../scripts/dobPicker.min.js"></script>
+
+<!-- Bootstrap select -->
+<script src="../scripts/bootstrap-select.min.js"></script>
+
+<!-- Wizard -->
+<script src="../scripts/jquery.bootstrap.wizard.min.js" type="text/javascript"></script>
+
+<!-- date picker -->
+<script src="../scripts/bootstrap-datepicker.js" type="text/javascript"></script>
+
+
+<!-- files to upload user profile images -->
+
+<script src="../scripts/jquery.easing.min.js"></script>
+
+<link href="../styles/uploader-style.css" rel="stylesheet">
+<link href="../styles/jquery.Jcrop.min.css" rel="stylesheet">
+
+
+<!-- joyride plugin  -->
+<script src="../scripts/bootstrap-tour.min.js"></script>
+
+<script src="../scripts/FileAPI.js" type="text/javascript"></script>
+<script src="../scripts/jquery.fileapi.js" type="text/javascript"></script>
+<script src="../scripts/jquery.modal.js" type="text/javascript"></script>
+<script src="../scripts/jquery.Jcrop.min.js" type="text/javascript"></script>
+
+<!-- ck editor -->
+<script src="../scripts/ckeditor.js" type="text/javascript"></script>
+<!-- loading overlay -->
+<script src="../scripts/loadingoverlay.js" type=" text/javascript"></script>
+
+<!-- end of files to upload user profile images -->
+<script type="text/javascript">
+$(document).ready(function () {
+$('[data-toggle="tooltip"]').tooltip();
+
+$('.selectpicker').selectpicker({
+style: 'btn btn-default',
+size: 4
+});
+
+//initialize bootstrap tour
+var tour = new Tour({
+name: "onlineapp-tour",
+backdrop: true,
+//storage: false,
+backdropContainer: "body",
+steps: [
+{
+smartPlacement: true,
+element: "#instructions",
+title: "Application Manual",
+content: "Comprehensive manual to show you the application process"
+},
+{
+smartPlacement: true,
+element: "#moredocs",
+title: "Upload Additional Documents",
+content: "If you have several separate documents, you can upload them by clicking this link"
+},
+{
+smartPlacement: true,
+element: "#apply-admission",
+title: "Apply For Admission",
+content: "Once you have fully updated your profile, you can proceed to select the course of your choice"
+},
+{
+smartPlacement: true,
+element: "#messages",
+title: "Messages",
+content: "All messages sent to you are also available here"
+},
+{
+smartPlacement: true,
+element: "#complete-applications",
+title: "Completed Applications",
+content: "All the applications you have paid for are available here"
+},
+{
+smartPlacement: true,
+element: "#open-course",
+title: "Open Courses",
+content: "This is the number of courses available in the active intakes"
+}
+]
+});
+
+// Initialize the tour
+tour.init();
+
+// Start the tour
+tour.start();
+
+});
+</script>
+<!-- marketing tracking code -->
+<script type="text/javascript">
+ (function() {
+�� window._pa = window._pa || {};
+�� // _pa.orderId = "myOrderId"; // OPTIONAL: attach unique conversion identifier to conversions
+�� // _pa.revenue = "19.99"; // OPTIONAL: attach dynamic purchase values to conversions
+�� // _pa.productId = "myProductId"; // OPTIONAL: Include product ID for use with dynamic ads
+	var pa = document.createElement('script'); 
+	pa.type = 'text/javascript'; 
+	pa.async = true;
+�� pa.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + "//tag.marinsm.com/serve/591c6ad8bba6ee462d00006e.js";
+�� var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
+ })();
+ </script>
+<!-- google analytics tracking -->
+<script type="text/javascript">
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+ga('create', 'UA-75114330-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+<script type="text/javascript" src="../scripts/jquery.yiigridview.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+jQuery(function($) {
+
+$('.search-button').click(function(){
+	$('.search-form').toggle();
+	return false;
+});
+$('.search-form form').submit(function(){
+	$('#uploadeddocs-grid').yiiGridView('update', {
+		data: $(this).serialize()
+	});
+	return false;
+});
+
+jQuery('#uploadeddocs-form').yiiactiveform({'validateOnSubmit':true,'validateOnChange':true,'validateOnType':false,'attributes':[{'id':'UPLOADEDDOCS_APPLICANT_ID','inputID':'UPLOADEDDOCS_APPLICANT_ID','errorID':'UPLOADEDDOCS_APPLICANT_ID_em_','model':'UPLOADEDDOCS','name':'APPLICANT_ID','enableAjaxValidation':true,'summary':true},{'id':'UPLOADEDDOCS_DOC_PATH','inputID':'UPLOADEDDOCS_DOC_PATH','errorID':'UPLOADEDDOCS_DOC_PATH_em_','model':'UPLOADEDDOCS','name':'DOC_PATH','enableAjaxValidation':true,'summary':true},{'id':'UPLOADEDDOCS_DOC_TYPE_ID','inputID':'UPLOADEDDOCS_DOC_TYPE_ID','errorID':'UPLOADEDDOCS_DOC_TYPE_ID_em_','model':'UPLOADEDDOCS','name':'DOC_TYPE_ID','enableAjaxValidation':true,'summary':true},{'id':'UPLOADEDDOCS_FOLLOW_UP','inputID':'UPLOADEDDOCS_FOLLOW_UP','errorID':'UPLOADEDDOCS_FOLLOW_UP_em_','model':'UPLOADEDDOCS','name':'FOLLOW_UP','enableAjaxValidation':true,'summary':true},{'summary':true}],'summaryID':'uploadeddocs\x2Dform_es_','errorCss':'error'});
+jQuery('#uploadeddocs-grid').yiiGridView({'ajaxUpdate':['uploadeddocs\x2Dgrid'],'ajaxVar':'ajax','pagerClass':'pager','loadingClass':'grid\x2Dview\x2Dloading','filterClass':'filters','tableClass':'items','selectableRows':1,'enableHistory':false,'updateSelector':'\x7Bpage\x7D,\x20\x7Bsort\x7D','filterSelector':'\x7Bfilter\x7D','pageVar':'UPLOADEDDOCS_page'});
+$(".flashes").animate({opacity: 0.9}, 10000).fadeOut("slow");
+});
+jQuery(window).on('load',function() {
+var FineUploader_FineUploader = new qq.FineUploader({'element':document.getElementById("FineUploader"),'debug':false,'multiple':false,'autoUpload':true,'text':{'uploadButton':'Upload\x20Document'},'request':{'endpoint':'\x2Findex.php\x2FUploadedDocs\x2FUploadFiles','params':{'YII_CSRF_TOKEN':'ee4c979b5bcc5fd4988e9802d124b6a0ce817466','APPLICANT_ID':'9769'}},'deleteFile':{'enabled':false,'endpoint':'\x2Findex.php\x2FUploadedDocs\x2FDeleteFile','params':{'YII_CSRF_TOKEN':'ee4c979b5bcc5fd4988e9802d124b6a0ce817466','APPLICANT_ID':'9769'}},'retry':{'enableAuto':true,'preventRetryResponseProperty':true},'chunking':{'enable':true,'partSize':100},'validation':{'allowedExtensions':['pdf','png','gif','jpg','jpeg','doc','docx'],'sizeLimit':5242880,'minSizeLimit':5.24288},'callbacks':{'onSubmit':function(id,filename,m){
+
+                            },'onComplete':function(id, name, response){
+                                //$.fn.yiiGridView.update('uploadeddocs-grid');
+                                //FILEPATH
+                                if(response.success==true){
+                                    $('#UPLOADEDDOCS_DOC_PATH').val(response.FILEPATH);
+                                }
+                                console.log(response);
+                            },'onError':function(id, name, errorReason){ console.log(errorReason);},'onValidateBatch':function(fileOrBlobData) {}},'messages':{'typeError':'\x7Bfile\x7D\x20has\x20invalid\x20extension.\x20Only\x20\x7Bextensions\x7D\x20are\x20allowed.','sizeError':'\x7Bfile\x7D\x20is\x20too\x20large,\x20maximum\x20file\x20size\x20is\x20\x7BsizeLimit\x7D.','emptyError':'\x7Bfile\x7D\x20is\x20empty,\x20please\x20select\x20files\x20again\x20without\x20it.','onLeave':'The\x20files\x20are\x20being\x20uploaded,\x20if\x20you\x20leave\x20now\x20the\x20upload\x20will\x20be\x20cancelled.'}});
+});
+/*]]>*/
+</script>
+</body>
+</html>

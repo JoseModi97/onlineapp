@@ -1,0 +1,303 @@
+
+
+
+    
+        
+        
+    
+
+    
+    
+        
+                
+        
+        
+    
+        
+            
+                My Dashboard
+            
+            
+                                Download Application tutorial
+            
+            
+                Update Your Profile            
+            
+                Upload Additional Documents            
+            
+                Application Instructions            
+            
+            
+                Apply for Admission            
+            
+             Logout (rosekyalo90@gmail.com)         
+    
+    
+        
+        
+    
+
+
+    
+        
+    
+    
+        
+                
+        
+        
+	
+    
+        
+            
+                Please Read the following Application Guidelines
+                
+                
+            
+
+            
+
+                Welcome to the University of Nairobi Online Application System
+                
+
+                Registration
+                
+
+                Before you can start to make an application you must first of all register or create a user account for yourself. Upon completion, an email will be sent to you (email provided during registration) requiring you to activate your account together with your username and password.  This will allow you to log into your account to manage your profile and track the progress of your application. To create your account please click on the Register button otherwise enter your username and password to log in to your account.
+                
+
+                Please note that every applicant must create their own personal account, including applicants who apply with the assistance of an agent.
+                
+
+                Profile Management
+                
+
+                To apply for a university programme you will be required to complete your profile. These include your personal details, contact information, education background, work experience and Referees. You will also be required to upload scanned copies of your certificates, transcripts and passport photo. If you do not manage to complete your profile in one session your data will be saved and you can still come back and complete it at a later time.
+                
+
+                Programme Selection
+                
+
+                Only when your profile is complete can you apply for the programme you wish to undertake. You will select your programme from the intakes that are open at the time of making the application. You will also be able to view the entry requirements for the programme to see if you meet the requirements before making the application.
+                
+
+                Payment of Application Fees
+                
+
+                If satisfied and wish to proceed you will be directed to the payment section where you pay the application fees. The system supports online payment using Master and Visa cards, Mpesa and payment through the bank. In each case the system will issue an applicant reference number which should be used as the account no when making the payment.
+                
+
+                Application Tracking
+
+                You will be able to track the status of your application online through the system.
+                
+
+                Admission/Registration Process
+
+The Online application system provides a mechanism for applicants to track the progress of the admission process at any given time. Upon the conclusion of the admission process, the applicant can download the admission letter and the joining instructions. 
+To accept admission, the applicant will need to pay KES 60,000.00 the minimum fees requirements using the reference number.
+Upon payment of the minimum fees, the applicant will log in to the student portal UON Student Portal and generate a registration number thereby becoming an unregistered student. The applicant will also attain credentials for the student portal 
+User name (Registration Number), Password (National ID number or Passport number). Using this credentials the student should log in to the portal and complete registration by submitting all the requisite documents online using the student registration link. Your student status is complete after the student registration process is complete and from there on, you can engage university activities as a fully registered student.
+
+                 
+
+                 
+                
+            
+        
+    
+
+        
+    
+    
+
+
+    
+        Incase of any queries please Email to 
+                    onlineapp@students.uonbi.ac.ke
+				
+        Telephone numbers: 020-272-6687020-491-3180
+								
+					 
+                    Data Privacy Info
+		
+     Copyright © 2025 University of Nairobi.
+    All Rights Reserved.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$(document).ready(function () {
+$('[data-toggle="tooltip"]').tooltip();
+
+$('.selectpicker').selectpicker({
+style: 'btn btn-default',
+size: 4
+});
+
+//initialize bootstrap tour
+var tour = new Tour({
+name: "onlineapp-tour",
+backdrop: true,
+//storage: false,
+backdropContainer: "body",
+steps: [
+{
+smartPlacement: true,
+element: "#instructions",
+title: "Application Manual",
+content: "Comprehensive manual to show you the application process"
+},
+{
+smartPlacement: true,
+element: "#moredocs",
+title: "Upload Additional Documents",
+content: "If you have several separate documents, you can upload them by clicking this link"
+},
+{
+smartPlacement: true,
+element: "#apply-admission",
+title: "Apply For Admission",
+content: "Once you have fully updated your profile, you can proceed to select the course of your choice"
+},
+{
+smartPlacement: true,
+element: "#messages",
+title: "Messages",
+content: "All messages sent to you are also available here"
+},
+{
+smartPlacement: true,
+element: "#complete-applications",
+title: "Completed Applications",
+content: "All the applications you have paid for are available here"
+},
+{
+smartPlacement: true,
+element: "#open-course",
+title: "Open Courses",
+content: "This is the number of courses available in the active intakes"
+}
+]
+});
+
+// Initialize the tour
+tour.init();
+
+// Start the tour
+tour.start();
+
+});
+
+
+
+ (function() {
+�� window._pa = window._pa || {};
+�� // _pa.orderId = "myOrderId"; // OPTIONAL: attach unique conversion identifier to conversions
+�� // _pa.revenue = "19.99"; // OPTIONAL: attach dynamic purchase values to conversions
+�� // _pa.productId = "myProductId"; // OPTIONAL: Include product ID for use with dynamic ads
+	var pa = document.createElement('script'); 
+	pa.type = 'text/javascript'; 
+	pa.async = true;
+�� pa.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + "//tag.marinsm.com/serve/591c6ad8bba6ee462d00006e.js";
+�� var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
+ })();
+ 
+
+
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+ga('create', 'UA-75114330-1', 'auto');
+ga('send', 'pageview');
+
+
+
+
+/*<![CDATA[*/
+jQuery(function($) {
+$(".flashes").animate({opacity: 0.9}, 10000).fadeOut("slow");
+});
+/*]]>*/
+
+
+
