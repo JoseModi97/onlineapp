@@ -51,9 +51,13 @@ class AppApplicantUser extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_STEP_PERSONAL_DETAILS] = ['surname', 'first_name', 'other_name', 'email_address', 'mobile_no'];
-        // profile_image is the string filename, profile_image_file is the UploadedFile instance
-        $scenarios[self::SCENARIO_STEP_ACCOUNT_SETTINGS] = ['username', 'password', 'profile_image', 'profile_image_file', 'change_pass'];
+        $scenarios[self::SCENARIO_STEP_PERSONAL_DETAILS] = [
+            'surname', 'first_name', 'other_name', 'email_address', 'mobile_no', // Existing fields
+            'username', 'profile_image', 'profile_image_file' // Added fields
+        ];
+        $scenarios[self::SCENARIO_STEP_ACCOUNT_SETTINGS] = [
+            'password', 'change_pass' // Username and profile image removed
+        ];
         return $scenarios;
     }
 
@@ -65,33 +69,40 @@ class AppApplicantUser extends \yii\db\ActiveRecord
         return [
             [['surname', 'other_name', 'email_address', 'mobile_no', 'password', 'activation_code', 'salt', 'status', 'date_registered', 'reg_token', 'profile_image', 'change_pass', 'username', 'first_name'], 'default', 'value' => null],
             [['date_registered'], 'safe'],
-            [['change_pass'], 'string'],
+            [['change_pass'], 'string'], // Should ideally be boolean, but depends on form input
             [['surname', 'email_address', 'activation_code', 'salt', 'reg_token'], 'string', 'max' => 100],
             [['other_name'], 'string', 'max' => 150],
             [['mobile_no', 'status'], 'string', 'max' => 30],
-            [['password'], 'string', 'max' => 200],
-            [['profile_image', 'first_name', 'username'], 'string', 'max' => 255], // profile_image stores filename
+            [['password'], 'string', 'max' => 200], // This might be for the new password input
+            [['profile_image', 'first_name', 'username'], 'string', 'max' => 255],
+
+            // General unique validation for username. Yii's unique validator should handle updates correctly by default.
             [['username'], 'unique'],
+
             [['applicant_user_id'], 'exist', 'skipOnError' => true, 'targetClass' => AppApplicant::class, 'targetAttribute' => ['applicant_user_id' => 'applicant_user_id']],
 
-            // Scenario specific rules
-            [['surname', 'first_name', 'email_address', 'mobile_no'], 'required', 'on' => self::SCENARIO_STEP_PERSONAL_DETAILS],
-
-            [['username'], 'required', 'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS],
-            ['password', 'required', 'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS, 'when' => function ($model) {
-                return $model->isNewRecord || $model->change_pass;
-            }, 'whenClient' => "function (attribute, value) {
-                return $('#appapplicantuser-change_pass').is(':checked') || " . ($this->isNewRecord ? 'true' : 'false') . ";
-            }"],
-
-            // Profile image file validation
+            // SCENARIO_STEP_PERSONAL_DETAILS rules
+            [['surname', 'first_name', 'email_address', 'mobile_no', 'username'], 'required', 'on' => self::SCENARIO_STEP_PERSONAL_DETAILS],
+            // Profile image file validation for Personal Details Step
             [['profile_image_file'], 'file',
-                'skipOnEmpty' => true, // Allow empty if no file is uploaded
+                'skipOnEmpty' => true,
                 'extensions' => 'png, jpg, jpeg',
                 'maxSize' => 1024 * 1024 * 2, // 2MB Max
-                'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS
+                'on' => self::SCENARIO_STEP_PERSONAL_DETAILS
             ],
-            [['profile_image_file'], 'validateImageDimensions', 'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS, 'skipOnEmpty' => true],
+            [['profile_image_file'], 'validateImageDimensions',
+                'on' => self::SCENARIO_STEP_PERSONAL_DETAILS,
+                'skipOnEmpty' => true
+            ],
+
+            // SCENARIO_STEP_ACCOUNT_SETTINGS rules
+            // [['username'], 'required', 'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS], // Username requirement removed from this scenario
+            ['password', 'required', 'on' => self::SCENARIO_STEP_ACCOUNT_SETTINGS, 'when' => function ($model) {
+                return !empty($model->change_pass); // Password required only if change_pass is checked/true
+            }, 'whenClient' => "function (attribute, value) {
+                return $('#appapplicantuser-change_pass').is(':checked');
+            }"],
+            // Removed profile image validation from SCENARIO_STEP_ACCOUNT_SETTINGS as it's moved
         ];
     }
 
