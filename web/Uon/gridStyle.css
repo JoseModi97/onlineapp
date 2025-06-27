@@ -1,0 +1,161 @@
+
+li.page, li.next, li.previous {
+    margin: 0;
+}
+
+.grid-view a {
+    text-decoration: underline;
+    color: #018359;
+    text-decoration: none;
+}
+
+.grid-view a:hover {
+    text-decoration: none;
+    color: #473100;
+}
+
+.grid-view table.items {
+    border-collapse: collapse;
+    width: 100%;
+    border: 0 none !important;
+}
+
+.grid-view table.items tr.selected {
+    background: #d1fff8;
+    color: #018359;
+}
+
+.grid-view table.items tr:hover td, .grid-view table.items tr:hover td a {
+    /*background:#7AB550;*/
+    /*color:#164853;*/
+    cursor: pointer;
+}
+
+/*.grid-view .link-column img
+{
+    border: 0;
+}*/
+
+/*.grid-view .button-column img
+{
+    border: 0;
+}*/
+
+.grid-view .button-column {
+    text-align: center;
+    width: 60px;
+}
+
+.grid-view .checkbox-column {
+    width: 15px !important;
+}
+
+/*.grid-view .summary*/
+div.summary {
+    margin: 0 0 5px 0;
+    text-align: right;
+    font-size: 0.9em
+}
+
+/*.grid-view .pager*/
+div.pager {
+    margin: 5px 0 0 0;
+    text-align: center;
+    padding: 0;
+    height: 30px;
+}
+
+.grid-view .empty {
+    font-style: italic;
+}
+
+.grid-view .filters input,
+.grid-view .filters select {
+    width: 100%;
+    border: 1px solid #ccc;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+}
+
+/* Styles for ClinkPager */
+ul.yiiPager {
+    font-size: .9em;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    line-height: 100%;
+    display: inline;
+}
+
+ul.yiiPager li {
+    display: inline;
+}
+
+ul.yiiPager a:link,
+ul.yiiPager a:visited {
+    border: solid 1px #ccc;
+    color: inherit;
+    font-weight: bold;
+    padding: 5px 10px;
+    text-decoration: none;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+
+ul.yiiPager .page a {
+    font-weight: 600;
+}
+
+ul.yiiPager a:hover {
+    background: #f2cf08;
+    color: #fff;
+}
+
+ul.yiiPager .selected a {
+    background: #e58616;
+    color: #fff;
+    font-weight: bold;
+    /*    font-size:1.3em;*/
+}
+
+ul.yiiPager .hidden a {
+    border: 1px solid #ccc;
+    color: inherit;
+}
+
+/**
+ * Hide first and last buttons by default.
+ */
+ul.yiiPager .first,
+ul.yiiPager .last {
+    /*display:none;*/
+}
+
+div.demo_box {
+    background: transparent url('images/bg.gif') repeat scroll left top;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+}
+
+div.grid-view {
+    /*background:#f3f3f3;
+    border:1px solid #ccc;
+    -moz-background-clip:border;
+    -moz-background-inline-policy:continuous;
+    -moz-background-origin:padding;
+    padding:5px;
+    z-index: -10;*/
+}
+
+/* filters for the datagrid */
+.filters {
+
+}
+
+.filters input {
+    width: 90% !important;
+    border-radius: 1px !important;
+}

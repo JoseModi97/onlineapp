@@ -1,0 +1,89 @@
+.icon-anchor:before
+{
+	content: url("images/user.png");
+    padding-right:5px;
+	
+}
+.icon-add:before
+{
+	content: url("images/user_add.png");
+    padding-right:5px;
+	
+}
+.icon-application_form:before
+{
+	content: url("images/house.png");
+    padding-right:5px;
+}
+
+.icon-group_add:before
+{
+	content: url("images/group_add.png");
+    padding-right:5px;
+}
+.icon-telephone_add:before
+{
+	content: url("images/telephone_add.png");
+    padding-right:5px;
+}
+
+.icon-user_go:before
+{
+	content: url("images/user_go.png");
+    padding-right:5px;
+	
+}
+
+.icon-book_open:before
+{
+	content: url("images/book_open.png");
+     padding-right:5px;
+	}
+
+.icon-medal_gold_add:before
+{
+	content: url("images/medal_gold_add.png");
+    padding-right:5px;
+}
+
+.icon-application_home:before
+{
+	content: url("images/application_home.png");
+    padding-right:5px;
+}
+.icon-application_form:before
+{
+	content: url("images/application_form.png");
+    padding-right:5px;
+}
+.icon-wrench_orange:before
+{
+	content: url("images/wrench_orange.png");
+    padding-right:5px;
+	
+}
+.icon-briefcase:before
+{
+	content: url("images/briefcase.png");
+    padding-right:5px;
+	
+}
+.icon-folder_page:before
+{
+	content: url("images/folder_page.png");
+    padding-right:5px;
+	
+}
+.icon-wrench:before
+ {
+	 content: url("images/wrench.png");
+	 padding-right:5px;
+
+ }
+
+.icon-note:before
+{
+	content: url("images/note_add.png");
+	padding-right:5px;
+
+}
