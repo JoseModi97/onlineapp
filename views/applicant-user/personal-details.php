@@ -17,14 +17,32 @@ use yii\widgets\ActiveForm;
 
     <div class="row">
         <div class="col-md-6">
+            <?php
+            $surnameOptions = ['maxlength' => true];
+            if (!empty($model->surname)) {
+                $surnameOptions['disabled'] = true;
+            }
+            ?>
             <?= $form->field($model, 'surname', [
                 'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-user"></i></span>{input}</div>{error}{hint}'
-            ])->textInput(['maxlength' => true]) ?>
+            ])->textInput($surnameOptions) ?>
+            <?php if (!empty($model->surname)): ?>
+                <?= Html::activeHiddenInput($model, 'surname') ?>
+            <?php endif; ?>
         </div>
         <div class="col-md-6">
+            <?php
+            $firstNameOptions = ['maxlength' => true];
+            if (!empty($model->first_name)) {
+                $firstNameOptions['disabled'] = true;
+            }
+            ?>
             <?= $form->field($model, 'first_name', [
                 'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-user"></i></span>{input}</div>{error}{hint}'
-            ])->textInput(['maxlength' => true]) ?>
+            ])->textInput($firstNameOptions) ?>
+            <?php if (!empty($model->first_name)): ?>
+                <?= Html::activeHiddenInput($model, 'first_name') ?>
+            <?php endif; ?>
         </div>
     </div>
 
