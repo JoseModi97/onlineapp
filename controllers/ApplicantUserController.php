@@ -145,32 +145,88 @@ class ApplicantUserController extends Controller
 
             if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
-                if ($model->load($postData) && $model->validate()) {
-                    $session->set($stepSessionKey, $model->getAttributes());
-                    $isValid = true;
-                    if ($model->isNewRecord) {
-                        if ($model->save(false)) {
-                            $applicant_user_id = $model->applicant_user_id;
-                            $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
-                            $appApplicantModel->applicant_user_id = $applicant_user_id;
-                        } else {
-                            $isValid = false;
-                            $stepRenderData['message'] = 'Failed to save personal details.';
-                            Yii::error($model->errors);
-                        }
-                    } else {
-                        if (!$model->save(false)) {
-                            $isValid = false;
-                            $stepRenderData['message'] = 'Failed to update personal details.';
-                            Yii::error($model->errors);
-                        }
+                // Store old image name before loading post data, in case a new one isn't uploaded or is invalid
+                $oldProfileImage = $model->profile_image;
+                $model->profile_image_file = UploadedFile::getInstance($model, 'profile_image_file');
+
+                if ($model->load($postData)) { // This will load username and other personal details
+                    // If no new file is uploaded, retain the old image name
+                    if (!$model->profile_image_file) {
+                        $model->profile_image = $oldProfileImage;
                     }
-                } else {
+                    // Server-side validation for profile_image_file (e.g. type, size, dimensions if defined in model rules)
+                    // The SCENARIO_STEP_PERSONAL_DETAILS should include rules for profile_image_file and username
+                    if ($model->validate()) {
+                        $isValid = true;
+                        // Handle profile image upload if a new file was provided and is valid
+                        if ($model->profile_image_file) {
+                            $uploadPath = Yii::getAlias('@webroot/img/profile/');
+                            if (!is_dir($uploadPath)) {
+                                FileHelper::createDirectory($uploadPath);
+                            }
+                            $uniqueFilename = Yii::$app->security->generateRandomString() . '.' . $model->profile_image_file->extension;
+                            $filePath = $uploadPath . $uniqueFilename;
+                            if ($model->profile_image_file->saveAs($filePath)) {
+                                // Delete old image if a new one is successfully uploaded and an old one exists
+                                if ($oldProfileImage && $oldProfileImage !== $uniqueFilename && file_exists($uploadPath . $oldProfileImage)) {
+                                    @unlink($uploadPath . $oldProfileImage);
+                                }
+                                $model->profile_image = $uniqueFilename; // Set new image name to the model
+                            } else {
+                                $isValid = false;
+                                $model->addError('profile_image_file', 'Could not save the uploaded image.');
+                                $stepRenderData['message'] = 'Error saving profile image. Please try again or contact support.';
+                            }
+                        }
+
+                        if ($isValid) { // Proceed only if image handling was successful (or not needed)
+                            // Save the model (AppApplicantUser)
+                            if ($model->save(false)) { // Save without re-validating as it's already validated
+                                if ($model->isNewRecord) { // Should be $model->getIsNewRecord() after save, but we check before
+                                    // This block might be less relevant if we ensure an ID is created first
+                                    // For now, assuming save() handles setting the ID if new.
+                                }
+                                $applicant_user_id = $model->applicant_user_id; // Ensure this is set
+                                $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
+                                // Link AppApplicant if it's being created or is related
+                                if ($appApplicantModel && $appApplicantModel->isNewRecord) {
+                                   $appApplicantModel->applicant_user_id = $applicant_user_id;
+                                }
+                                $session->set($stepSessionKey, $model->getAttributes()); // Save all attributes
+                            } else {
+                                $isValid = false;
+                                $stepRenderData['message'] = 'Failed to save personal details.';
+                                Yii::error($model->errors);
+                            }
+                        }
+                    } else { // Model validation failed
+                        $isValid = false;
+                        if ($model->hasErrors('profile_image_file')) {
+                            $stepRenderData['message'] = 'Profile image error: ' . $model->getFirstError('profile_image_file');
+                        } elseif (empty($stepRenderData['message'])) {
+                            $stepRenderData['message'] = 'Please correct errors in Personal Details. ' . Html::errorSummary($model);
+                        }
+                        // If validation fails and there was a new file attempt, we might need to reset profile_image to oldProfileImage
+                        // if the upload itself didn't cause the error but another field did.
+                        // However, $model->profile_image is not yet saved to DB.
+                        // The critical part is that $model->profile_image (attribute) should reflect the correct state for the view rendering.
+                        // If $model->profile_image_file was set, but validation failed on another field,
+                        // $model->profile_image might still be $oldProfileImage due to `if (!$model->profile_image_file)` check.
+                        // Or, if image processing failed, $model->profile_image would be $oldProfileImage.
+                        // If image processing was successful but another field failed, $model->profile_image is $uniqueFilename.
+                        // This seems acceptable as the user will see the new preview but also errors.
+                    }
+                } else { // Model load failed
                     $isValid = false;
-                    if (empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Personal Details.';
+                    $stepRenderData['message'] = 'Could not load personal details data. Please try again.';
                 }
             } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
                 // Initialize $appApplicantModel for the current step
+                // Ensure $model (AppApplicantUser) is the correct, possibly already saved, instance
+                if ($applicant_user_id && $model && ($model->isNewRecord || $model->applicant_user_id != $applicant_user_id)) {
+                     $model = $this->findModel($applicant_user_id); // Re-fetch if necessary
+                }
+
                 if ($applicant_user_id && $model && !$model->isNewRecord) {
                     // $model is AppApplicantUser, already loaded or re-fetched if $applicant_user_id was present
                     $appApplicantModel = $model->getAppApplicant()->one();
@@ -288,47 +344,96 @@ class ApplicantUserController extends Controller
                 }
             } elseif ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
-                $model->profile_image_file = UploadedFile::getInstance($model, 'profile_image_file');
-                $oldProfileImage = $model->profile_image;
+                // Username and profile image are now handled in STEP_PERSONAL_DETAILS.
+                // This step should now primarily focus on password changes or other account-specific settings.
+
+                // We need to ensure that $model still has its existing username and profile_image values
+                // if they were set in a previous step and loaded from session, so they are not accidentally wiped
+                // if this step's form doesn't include them (which it shouldn't anymore for these fields).
+                // $this->loadModelsForStep should ensure $model is up-to-date from session or DB.
+                // When $model->load($postData) is called, it will only load attributes declared safe in SCENARIO_STEP_ACCOUNT_SETTINGS.
 
                 if ($model->load($postData)) {
-                    if (!$model->profile_image_file) {
-                        $model->profile_image = $oldProfileImage;
-                    }
+                    // No profile image processing here anymore.
+                    // Username is not part of this step's direct editable fields anymore.
                     if ($model->validate()) {
                         $isValid = true;
-                        if ($model->profile_image_file) {
-                            $uploadPath = Yii::getAlias('@webroot/img/profile/');
-                            if (!is_dir($uploadPath)) {
-                                FileHelper::createDirectory($uploadPath);
-                            }
-                            $uniqueFilename = Yii::$app->security->generateRandomString() . '.' . $model->profile_image_file->extension;
-                            $filePath = $uploadPath . $uniqueFilename;
-                            if ($model->profile_image_file->saveAs($filePath)) {
-                                if ($oldProfileImage && $oldProfileImage !== $uniqueFilename && file_exists($uploadPath . $oldProfileImage)) {
-                                    @unlink($uploadPath . $oldProfileImage);
-                                }
-                                $model->profile_image = $uniqueFilename;
-                            } else {
-                                $isValid = false;
-                                $model->addError('profile_image_file', 'Could not save the uploaded image.');
-                                $stepRenderData['message'] = 'Error saving profile image. Please try again or contact support.';
-                            }
-                        }
+                        // Any other specific logic for account settings can go here.
                     } else {
                         $isValid = false;
-                        if ($model->hasErrors('profile_image_file')) {
-                            $stepRenderData['message'] = 'Profile image error: ' . $model->getFirstError('profile_image_file');
-                        } elseif (empty($stepRenderData['message'])) {
-                            $stepRenderData['message'] = 'Please correct the errors in Account Settings.';
+                        // Error messages for password fields or other account settings will be handled by model validation.
+                        if (empty($stepRenderData['message'])) {
+                           $errorSummary = Html::errorSummary($model);
+                           $stepRenderData['message'] = 'Please correct the errors in Account Settings. ' . $errorSummary;
                         }
                     }
                 } else {
                     $isValid = false;
                     $stepRenderData['message'] = 'Could not load account settings data. Please try again.';
                 }
+
                 if ($isValid) {
-                    $session->set($stepSessionKey, $model->getAttributes(['username', 'password', 'profile_image', 'change_pass']));
+                    // Only save attributes relevant to this step (e.g., password-related fields).
+                    // 'username' and 'profile_image' should not be part of this step's session data.
+                    // If 'password' or 'change_pass' are empty and not meant to be changed,
+                    // the model's validation and save logic should handle that.
+                    // For example, only include 'password' if 'change_pass' is true.
+                    $attributesToSaveInSession = [];
+                    if (!empty($model->change_pass) && !empty($model->password)) { // Assuming 'password' holds new_password and 'change_pass' is a flag
+                        $attributesToSaveInSession[] = 'password'; // Or specific fields like 'new_password', 'current_password'
+                        $attributesToSaveInSession[] = 'password_hash'; // if password was already hashed by model
+                        $attributesToSaveInSession[] = 'change_pass';
+                    }
+                    // Add any other fields specific to account settings here.
+                    // For now, let's assume 'password' and 'change_pass' are the main ones.
+                    // If SCENARIO_STEP_ACCOUNT_SETTINGS is well-defined, we can get safe attributes.
+                    // $session->set($stepSessionKey, $model->getAttributes($model->safeAttributes()));
+                    // However, to be explicit and avoid carrying over unchanged data unnecessarily:
+                    $accountSettingsSessionData = [];
+                    if (isset($postData[$model->formName()]['password'])) { // Check if password was submitted
+                         $accountSettingsSessionData['password'] = $model->password; // This might be plain text new_password
+                         // The model should handle hashing on save or in a setter.
+                         // Or, if the model sets password_hash directly after validation:
+                         if ($model->isAttributeChanged('password_hash') || !empty($model->password)) {
+                            $accountSettingsSessionData['password_hash'] = $model->password_hash;
+                         }
+                    }
+                     if (isset($postData[$model->formName()]['change_pass'])) {
+                        $accountSettingsSessionData['change_pass'] = $model->change_pass;
+                    }
+                    // If the model has other attributes like `current_password`, `new_password`, `repeat_password`
+                    // they should be used for validation and then `password_hash` set.
+                    // The attributes stored in session should be the ones needed for the final save.
+                    // Given the original code saved `password` (likely new_password/hash) and `change_pass`:
+                    $finalAccountSessionData = [];
+                    if ($model->change_pass) {
+                        $finalAccountSessionData['change_pass'] = $model->change_pass;
+                        // Assuming $model->password is the new password (or hash if processed by model)
+                        // The original code had $model->getAttributes(['username', 'password', 'profile_image', 'change_pass'])
+                        // So it was saving the 'password' attribute value.
+                        $finalAccountSessionData['password'] = $model->password; // Storing the potentially new password/hash
+                    }
+
+
+                    // Let's refine to only store what's actually changed or relevant for this step.
+                    // The model should ideally handle the logic of "if change_pass is true, then password is required".
+                    // The session should store the outcome (e.g. the new password_hash if changed).
+                    // For now, mirroring the original attributes list minus username/profile_image,
+                    // but conditional on change_pass for password.
+                    $attributesForSession = [];
+                    if ($model->change_pass && $model->password) { // Assuming $model->password is the new password
+                        $attributesForSession['password'] = $model->password; // This should ideally be the new hash or secure value
+                    }
+                    $attributesForSession['change_pass'] = $model->change_pass;
+                    // Any other pure account settings fields would be added here.
+
+                    // If SCENARIO_STEP_ACCOUNT_SETTINGS includes 'password' and 'change_pass' as safe attributes:
+                    // $session->set($stepSessionKey, $model->getAttributes(['password', 'change_pass']));
+                    // This is simpler if the model's attributes are correctly populated after load and validate.
+                    // The model might have password_hash attribute that gets updated.
+                    // Let's stick to the original attributes saved, minus the moved ones.
+                    $session->set($stepSessionKey, $model->getAttributes(['password', 'change_pass']));
+
                 }
             }
 
