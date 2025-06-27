@@ -145,10 +145,42 @@ class ApplicantUserController extends Controller
 
             if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
-                if ($model->load($postData) && $model->validate()) {
-                    $session->set($stepSessionKey, $model->getAttributes());
-                    $isValid = true;
-                    if ($model->isNewRecord) {
+                // Handle profile image upload specifically for personal details
+                $oldProfileImage = $model->profile_image; // Store old image name before load
+                $model->profile_image_file = UploadedFile::getInstance($model, 'profile_image_file');
+
+                if ($model->load($postData)) {
+                    if (!$model->profile_image_file) {
+                        $model->profile_image = $oldProfileImage; // Restore if no new file uploaded
+                    }
+
+                    if ($model->validate()) {
+                        $isValid = true;
+                        // Image processing logic moved from account-settings
+                        if ($model->profile_image_file) {
+                            $uploadPath = Yii::getAlias('@webroot/img/profile/');
+                            if (!is_dir($uploadPath)) {
+                                FileHelper::createDirectory($uploadPath);
+                            }
+                            $uniqueFilename = Yii::$app->security->generateRandomString() . '.' . $model->profile_image_file->extension;
+                            $filePath = $uploadPath . $uniqueFilename;
+                            if ($model->profile_image_file->saveAs($filePath)) {
+                                if ($oldProfileImage && $oldProfileImage !== $uniqueFilename && file_exists($uploadPath . $oldProfileImage)) {
+                                    @unlink($uploadPath . $oldProfileImage);
+                                }
+                                $model->profile_image = $uniqueFilename; // Update model attribute
+                            } else {
+                                $isValid = false;
+                                $model->addError('profile_image_file', 'Could not save the uploaded image.');
+                                $stepRenderData['message'] = 'Error saving profile image.';
+                            }
+                        }
+
+                        if ($isValid) { // Proceed if image processing was successful (or not needed)
+                            // Save all relevant attributes for personal details step to session
+                            // This will now include username and profile_image (filename)
+                            $session->set($stepSessionKey, $model->getAttributes());
+                            if ($model->isNewRecord) {
                         if ($model->save(false)) {
                             $applicant_user_id = $model->applicant_user_id;
                             $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
@@ -165,9 +197,13 @@ class ApplicantUserController extends Controller
                             Yii::error($model->errors);
                         }
                     }
-                } else {
+                } else { // Model load or validation failed
                     $isValid = false;
-                    if (empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Personal Details.';
+                    if ($model->hasErrors('profile_image_file') && empty($stepRenderData['message'])) {
+                        $stepRenderData['message'] = 'Profile image error: ' . $model->getFirstError('profile_image_file');
+                    } elseif (empty($stepRenderData['message'])) {
+                        $stepRenderData['message'] = 'Please correct errors in Personal Details. ' . Html::errorSummary($model);
+                    }
                 }
             } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
                 // Initialize $appApplicantModel for the current step
@@ -288,47 +324,21 @@ class ApplicantUserController extends Controller
                 }
             } elseif ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
-                $model->profile_image_file = UploadedFile::getInstance($model, 'profile_image_file');
-                $oldProfileImage = $model->profile_image;
+                // Username and profile image are now handled in STEP_PERSONAL_DETAILS
+                // Only password-related fields are handled here.
 
-                if ($model->load($postData)) {
-                    if (!$model->profile_image_file) {
-                        $model->profile_image = $oldProfileImage;
-                    }
-                    if ($model->validate()) {
-                        $isValid = true;
-                        if ($model->profile_image_file) {
-                            $uploadPath = Yii::getAlias('@webroot/img/profile/');
-                            if (!is_dir($uploadPath)) {
-                                FileHelper::createDirectory($uploadPath);
-                            }
-                            $uniqueFilename = Yii::$app->security->generateRandomString() . '.' . $model->profile_image_file->extension;
-                            $filePath = $uploadPath . $uniqueFilename;
-                            if ($model->profile_image_file->saveAs($filePath)) {
-                                if ($oldProfileImage && $oldProfileImage !== $uniqueFilename && file_exists($uploadPath . $oldProfileImage)) {
-                                    @unlink($uploadPath . $oldProfileImage);
-                                }
-                                $model->profile_image = $uniqueFilename;
-                            } else {
-                                $isValid = false;
-                                $model->addError('profile_image_file', 'Could not save the uploaded image.');
-                                $stepRenderData['message'] = 'Error saving profile image. Please try again or contact support.';
-                            }
-                        }
-                    } else {
-                        $isValid = false;
-                        if ($model->hasErrors('profile_image_file')) {
-                            $stepRenderData['message'] = 'Profile image error: ' . $model->getFirstError('profile_image_file');
-                        } elseif (empty($stepRenderData['message'])) {
-                            $stepRenderData['message'] = 'Please correct the errors in Account Settings.';
-                        }
-                    }
+                if ($model->load($postData) && $model->validate()) {
+                    $isValid = true;
+                    // Logic for profile_image_file and username removed from here
                 } else {
                     $isValid = false;
-                    $stepRenderData['message'] = 'Could not load account settings data. Please try again.';
+                    if (empty($stepRenderData['message'])) {
+                         $stepRenderData['message'] = 'Please correct the errors in Account Settings. ' . Html::errorSummary($model);
+                    }
                 }
                 if ($isValid) {
-                    $session->set($stepSessionKey, $model->getAttributes(['username', 'password', 'profile_image', 'change_pass']));
+                    // Save only relevant attributes for account settings to session
+                    $session->set($stepSessionKey, $model->getAttributes(['password', 'change_pass']));
                 }
             }
 
