@@ -194,6 +194,32 @@ function is_active_nav_item($linkRouteOrChildren, $currentRouteStr, $isParent = 
                     <i class="bi bi-house me-2"></i> Home
                 </a>
 
+                <!-- Adapted navigation items from web/Uon/index.html -->
+                <a href="<?= \yii\helpers\Url::to(['/dashboard/index']) // Assuming 'dashboard/index' for My Dashboard ?>" class="nav-link text-white <?= is_active_nav_item('/dashboard/index', $currentRoute) ? 'active' : '' ?>">
+                    <i class="bi bi-speedometer2 me-2"></i> My Dashboard
+                </a>
+
+                <a href="<?= Yii::getAlias('@web/documents/how_to_apply.pdf') // Assuming PDF is in web/documents ?>" class="nav-link text-white" target="_blank" title="Download a help guide on how to apply">
+                    <i class="bi bi-file-earmark-arrow-down me-2"></i> Download Application tutorial
+                </a>
+
+                <a href="<?= \yii\helpers\Url::to(['/profile/update']) // Assuming 'profile/update' ?>" class="nav-link text-white <?= is_active_nav_item('/profile/update', $currentRoute) ? 'active' : '' ?>">
+                    <i class="bi bi-person-badge me-2"></i> Update Your Profile
+                </a>
+
+                <a href="<?= \yii\helpers\Url::to(['/documents/upload']) // Assuming 'documents/upload' for additional documents ?>" class="nav-link text-white <?= is_active_nav_item('/documents/upload', $currentRoute) ? 'active' : '' ?>">
+                    <i class="bi bi-file-earmark-arrow-up me-2"></i> Upload Additional Documents
+                </a>
+
+                <a href="<?= \yii\helpers\Url::to(['/site/instructions']) // Assuming 'site/instructions' ?>" class="nav-link text-white <?= is_active_nav_item('/site/instructions', $currentRoute) ? 'active' : '' ?>">
+                    <i class="bi bi-card-text me-2"></i> Application Instructions
+                </a>
+
+                <a href="<?= \yii\helpers\Url::to(['/application/create']) // Assuming 'application/create' or similar for applying ?>" class="nav-link text-white <?= is_active_nav_item('/application/create', $currentRoute) ? 'active' : '' ?>">
+                    <i class="bi bi-journal-plus me-2"></i> Apply for Admission
+                </a>
+                <!-- End of adapted items -->
+
                 <!-- Setups collapsible group -->
                 <?php
                 $setupsSubmenuLinks = [
