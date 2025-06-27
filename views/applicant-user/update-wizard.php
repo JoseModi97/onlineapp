@@ -13,15 +13,15 @@ use yii\bootstrap5\Nav; // Using Bootstrap 5 Nav widget for tabs
 /** @var array|null $personalNamesForJs Contains 'firstName' and 'surname' for JS auto-fill, passed from controller */
 
 $this->title = 'Applicant Update Wizard';
-$this->params['breadcrumbs'][] = ['label' => 'App Applicant Users', 'url' => ['index']];
+// $this->params['breadcrumbs'][] = ['label' => 'App Applicant Users', 'url' => ['index']];
 
-// Ensure $model is not null before accessing its properties for breadcrumbs
-if ($model && $model->hasAttribute('applicant_user_id') && !$model->isNewRecord) {
-    $this->params['breadcrumbs'][] = ['label' => $model->applicant_user_id, 'url' => ['view', 'applicant_user_id' => $model->applicant_user_id]];
-} elseif (Yii::$app->session->get('applicant_wizard_applicant_user_id')) {
-    // Fallback if $model is new but we have an ID from session (e.g. after first step save)
-    $this->params['breadcrumbs'][] = ['label' => Yii::$app->session->get('applicant_wizard_applicant_user_id'), 'url' => ['view', 'applicant_user_id' => Yii::$app->session->get('applicant_wizard_applicant_user_id')]];
-}
+// // Ensure $model is not null before accessing its properties for breadcrumbs
+// if ($model && $model->hasAttribute('applicant_user_id') && !$model->isNewRecord) {
+//     $this->params['breadcrumbs'][] = ['label' => $model->applicant_user_id, 'url' => ['view', 'applicant_user_id' => $model->applicant_user_id]];
+// } elseif (Yii::$app->session->get('applicant_wizard_applicant_user_id')) {
+//     // Fallback if $model is new but we have an ID from session (e.g. after first step save)
+//     $this->params['breadcrumbs'][] = ['label' => Yii::$app->session->get('applicant_wizard_applicant_user_id'), 'url' => ['view', 'applicant_user_id' => Yii::$app->session->get('applicant_wizard_applicant_user_id')]];
+// }
 $this->params['breadcrumbs'][] = $this->title;
 
 // Define titles for each step for the navigation UI

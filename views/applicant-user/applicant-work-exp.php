@@ -34,11 +34,22 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
         // 'validateOnBlur' => true,
     ]); ?>
 
-    <?= $form->field($workExpModel, 'employer_name')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($workExpModel, 'designation')->textInput(['maxlength' => true]) ?>
 
     <div class="row">
+        <div class="col-md-6">
+            <?= $form->field(
+                $workExpModel,
+                'employer_name',
+                [
+                    'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-briefcase"></i></span>{input}</div>{error}{hint}'
+                ]
+            )->textInput(['maxlength' => true]) ?>
+        </div>
+        <div class="col-md-6">
+            <?= $form->field($workExpModel, 'designation', [
+                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-id-badge"></i></span>{input}</div>{error}{hint}'
+            ])->textInput(['maxlength' => true]) ?>
+        </div>
         <div class="col-md-6">
             <?= $form->field($workExpModel, 'year_from', [
                 'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>{input}</div>{error}{hint}'
@@ -70,14 +81,28 @@ use yii\bootstrap5\ActiveForm; // Using Bootstrap 5 ActiveForm for consistency
                 ],
             ]) ?>
         </div>
+
+        <div class="col-md-8">
+            <?= $form->field($workExpModel, 'assignment', [
+                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-tasks"></i></span>{input}</div>{error}{hint}'
+            ])->textarea(['rows' => 4]) ?>
+        </div>
+        <div class="col-md-4">
+
+        </div>
+        <div class="col-md-4">
+            <?= $form->field($workExpModel, 'relevant', [
+                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-check-circle"></i></span>{input}</div>{error}{hint}'
+            ])->dropDownList(
+                ['Yes' => 'Yes', 'No' => 'No'],
+                ['prompt' => 'Is this experience relevant?']
+            ) ?>
+        </div>
+
     </div>
 
-    <?= $form->field($workExpModel, 'assignment')->textarea(['rows' => 4]) ?>
 
-    <?= $form->field($workExpModel, 'relevant')->dropDownList(
-        ['Yes' => 'Yes', 'No' => 'No'],
-        ['prompt' => 'Is this experience relevant?']
-    ) ?>
+
     <?php // Alternatively, use a checkbox for boolean 'relevant' if DB field is boolean/tinyint 
     ?>
     <?php // echo $form->field($workExpModel, 'relevant')->checkbox() 
