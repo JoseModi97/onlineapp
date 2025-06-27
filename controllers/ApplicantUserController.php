@@ -159,10 +159,10 @@ class ApplicantUserController extends Controller
                 if ($applicant_user_id && !$model->isNewRecord) {
                     $appApplicantModel = $model->appApplicant ?? new AppApplicant(['applicant_user_id' => $applicant_user_id]);
                     if ($appApplicantModel->isNewRecord) {
-                         $appApplicantModel->applicant_user_id = $applicant_user_id;
+                        $appApplicantModel->applicant_user_id = $applicant_user_id;
                     }
                 } else {
-                     $appApplicantModel = new AppApplicant(); // Will be linked if $model is saved and gets an ID
+                    $appApplicantModel = new AppApplicant(); // Will be linked if $model is saved and gets an ID
                 }
 
                 $modelLoaded = $model->load($postData);
@@ -181,9 +181,9 @@ class ApplicantUserController extends Controller
                     } else {
                         // If $model was new, it now has an ID. Link $appApplicantModel.
                         if ($model->isNewRecord || !$applicant_user_id) { // Check if $model was new or $applicant_user_id wasn't set before
-                             $applicant_user_id = $model->applicant_user_id; // Get the new/confirmed ID
-                             $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
-                             $appApplicantModel->applicant_user_id = $applicant_user_id; // Link $appApplicantModel
+                            $applicant_user_id = $model->applicant_user_id; // Get the new/confirmed ID
+                            $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
+                            $appApplicantModel->applicant_user_id = $applicant_user_id; // Link $appApplicantModel
                         }
                         // Session data for personal details will now be an array containing both model attributes
                         $session->set($stepSessionKey, [
@@ -228,11 +228,11 @@ class ApplicantUserController extends Controller
                                 // For "save on next", we might need to ensure AppApplicant record exists first.
                                 // This part of the logic might need review based on when AppApplicant is created.
                                 // For now, assume AppApplicant might not have its own PK (applicant_id) yet if saved via session.
-                                 $appApplicantForWorkExp = new AppApplicant(['applicant_user_id' => $applicant_user_id]);
-                                 if (!$appApplicantForWorkExp->save(false)) { // Save to get PK if new
-                                     $isValid = false;
-                                     $stepRenderData['message'] = 'Error: Could not initialize applicant sub-record for work experience. ' . Html::errorSummary($appApplicantForWorkExp);
-                                 }
+                                $appApplicantForWorkExp = new AppApplicant(['applicant_user_id' => $applicant_user_id]);
+                                if (!$appApplicantForWorkExp->save(false)) { // Save to get PK if new
+                                    $isValid = false;
+                                    $stepRenderData['message'] = 'Error: Could not initialize applicant sub-record for work experience. ' . Html::errorSummary($appApplicantForWorkExp);
+                                }
                             }
 
                             if ($isValid && $appApplicantForWorkExp && $appApplicantForWorkExp->applicant_id) {
@@ -373,7 +373,7 @@ class ApplicantUserController extends Controller
                         // If $appApplicantModel was specifically loaded and validated here:
                         // if (isset($appApplicantModel) && $appApplicantModel->load($postData)) $errors = $appApplicantModel->getErrors();
                         // else $errors = ['applicant_specifics' => 'Could not load data.'];
-                         $errors = []; // No specific errors for this step currently
+                        $errors = []; // No specific errors for this step currently
                     } elseif ($currentProcessingStep === self::STEP_WORK_EXPERIENCE) {
                         $tempWorkExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
                         $tempWorkExpModel->load($postData);
@@ -499,7 +499,7 @@ class ApplicantUserController extends Controller
             'stepData' => $stepRenderData,
             'steps' => $this->_steps,
             'personalNamesForJs' => $personalNamesForJs, // Pass names for JS
-        ]);
+        ];
 
         // For initial page load, if the current step is work experience, fetch existing experiences
         if ($currentStep === self::STEP_WORK_EXPERIENCE && $applicant_user_id) {
@@ -513,7 +513,7 @@ class ApplicantUserController extends Controller
                         ->asArray()
                         ->all();
                 } else {
-                     $renderParams['existingWorkExperiences'] = []; // No PK on AppApplicant yet
+                    $renderParams['existingWorkExperiences'] = []; // No PK on AppApplicant yet
                 }
             }
         }
@@ -600,8 +600,8 @@ class ApplicantUserController extends Controller
                     // but rather one at a time if "save on next" was used, or one final entry if submitted at end.
                     // If workExpData from session represents a single record to be saved/updated:
                     if (!empty($workExpData)) {
-                         // If work experiences were saved one-by-one and session cleared, this $workExpData might be empty.
-                         // If it's meant to save a pending one from session:
+                        // If work experiences were saved one-by-one and session cleared, this $workExpData might be empty.
+                        // If it's meant to save a pending one from session:
                         $finalWorkExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
                         $finalWorkExpModel->setAttributes($workExpData, false);
                         $finalWorkExpModel->applicant_id = $finalAppApplicantModel->applicant_id;
