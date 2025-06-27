@@ -1,79 +1,35 @@
 <?php
 
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-use yii\jui\DatePicker;
 
 /** @var yii\web\View $this */
-/** @var app\models\AppApplicant $appApplicantModel */
+// This step is now the final step and its original fields have been moved to "Personal Details".
+// It can serve as a confirmation or summary view if needed in the future.
+// For now, it will be a simple placeholder.
+
+$this->title = 'Applicant Specifics - Final Step'; // Example title
 ?>
 
-<div class="applicant-specifics-form">
+<div class="applicant-specifics-final-step">
 
-    <?php $form = ActiveForm::begin([
-        'id' => 'applicant-specifics-form',
-    ]); ?>
+    <h4>Final Review</h4>
 
-    <?= $form->errorSummary($appApplicantModel); // Added error summary ?>
+    <p>
+        All required information has been collected. Please click "Save" to complete the applicant registration/update process.
+    </p>
+    <p>
+        You can use the "Previous" button to go back and review or modify any information provided in the earlier steps.
+    </p>
 
-    <div class="row">
-        <div class="col-md-6">
-            <?= $form->field($appApplicantModel, 'gender', [
-                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-venus-mars"></i></span>{input}</div>{error}{hint}'
-            ])->dropDownList(['Male' => 'Male', 'Female' => 'Female'], ['prompt' => 'Select Gender']) ?>
-        </div>
-        <div class="col-md-6">
-            <?= $form->field($appApplicantModel, 'dob', [
-                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>{input}</div>{error}{hint}'
-            ])->widget(DatePicker::class, [
-                'options' => ['class' => 'form-control'],
-                'dateFormat' => 'yyyy-MM-dd',
-                'clientOptions' => [
-                    'dateFormat' => 'yy-mm-dd',
-                    'changeYear' => true,
-                    'changeMonth' => true,
-                    'yearRange' => '-100:+0',
-                ],
-            ]) ?>
-        </div>
-    </div>
+    <?php
+    // If this step were to display a summary, you would fetch data from session or models here.
+    // For example:
+    // $session = Yii::$app->session;
+    // $personalDetailsData = $session->get('applicant_wizard_data_step_personal-details', []);
+    // $workExpData = $session->get('applicant_wizard_data_step_applicant-work-exp', []);
+    // ... then render this data.
+    ?>
 
-    <div class="row">
-        <div class="col-md-6">
-            <?= $form->field($appApplicantModel, 'religion', [
-                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-place-of-worship"></i></span>{input}</div>{error}{hint}'
-            ])->textInput(['maxlength' => true]) ?>
-        </div>
-        <div class="col-md-6">
-            <?= $form->field($appApplicantModel, 'country_code', [
-                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-flag"></i></span>{input}</div>{error}{hint}'
-            ])->textInput(['maxlength' => true]) ?>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <?= $form->field($appApplicantModel, 'national_id', [
-                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-id-card"></i></span>{input}</div>{error}{hint}'
-            ])->textInput(['maxlength' => true]) ?>
-        </div>
-        <div class="col-md-6">
-            <?= $form->field($appApplicantModel, 'marital_status', [
-                'template' => '{label}<div class="input-group"><span class="input-group-text"><i class="fas fa-ring"></i></span>{input}</div>{error}{hint}'
-            ])->dropDownList([
-                'Single' => 'Single',
-                'Married' => 'Married',
-                'Divorced' => 'Divorced',
-                'Widowed' => 'Widowed',
-            ], ['prompt' => 'Select Marital Status']) ?>
-        </div>
-    </div>
-
-    <?php // Navigation buttons are now handled by the main update-wizard.php view and AJAX JS ?>
-    <div class="form-group visually-hidden">
-        <?= Html::submitButton('Submit', ['style' => 'display:none;']) ?>
-    </div>
-
-    <?php ActiveForm::end(); ?>
+    <?php // Navigation buttons (Previous, Save) are handled by the main update-wizard.php view and its JavaScript. ?>
 
 </div>

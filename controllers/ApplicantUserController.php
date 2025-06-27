@@ -10,24 +10,24 @@ use app\components\AccessControlBehavior;
 use app\models\search\AppApplicantUserSearch;
 use yii\web\NotFoundHttpException;
 use app\models\AppApplicant;
-use app\models\AppApplicantWorkExp; // Added for new step
+use app\models\AppApplicantWorkExp;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html; // Added for Html::errorSummary
+use yii\helpers\Html;
 use yii\web\UploadedFile;
 use yii\helpers\FileHelper;
 
 class ApplicantUserController extends Controller
 {
     const STEP_PERSONAL_DETAILS = 'personal-details';
-    const STEP_WORK_EXPERIENCE = 'applicant-work-exp'; // New step
-    const STEP_APPLICANT_SPECIFICS = 'applicant-specifics';
-    const STEP_ACCOUNT_SETTINGS = 'account-settings';
+    const STEP_WORK_EXPERIENCE = 'applicant-work-exp';
+    const STEP_APPLICANT_SPECIFICS = 'applicant-specifics'; // This will be the last step, fields moved to personal-details
+
+    // STEP_ACCOUNT_SETTINGS is removed
 
     private $_steps = [
         self::STEP_PERSONAL_DETAILS,
-        self::STEP_WORK_EXPERIENCE, // New step added in order
-        self::STEP_APPLICANT_SPECIFICS,
-        self::STEP_ACCOUNT_SETTINGS,
+        self::STEP_WORK_EXPERIENCE,
+        self::STEP_APPLICANT_SPECIFICS, // Now the last step
     ];
 
     /**
@@ -106,17 +106,27 @@ class ApplicantUserController extends Controller
             $currentProcessingStep = $postData['current_step_validated'] ?? $session->get($wizardDataKeyPrefix . 'current_step', self::STEP_PERSONAL_DETAILS);
             if (!in_array($currentProcessingStep, $this->_steps)) $currentProcessingStep = self::STEP_PERSONAL_DETAILS;
 
-            // Load models relevant to the current processing step
-            // $model is AppApplicantUser, $appApplicantModel is AppApplicant, $workExpModel for work experience
-            // We need to ensure $model (AppApplicantUser) is loaded correctly if $applicant_user_id exists
-            if ($applicant_user_id && !$model->isNewRecord && $model->applicant_user_id != $applicant_user_id) {
-                // If $model was new but $applicant_user_id came from session, or ID mismatch, reload.
-                $model = $this->findModel($applicant_user_id);
+            // Load AppApplicantUser model ($model)
+            if ($applicant_user_id) {
+                if (!$model || $model->isNewRecord || $model->applicant_user_id != $applicant_user_id) {
+                    $model = $this->findModel($applicant_user_id);
+                }
+            } else {
+                $model = new AppApplicantUser();
             }
-            // $appApplicantModel and $workExpModel are typically new instances for POST data loading,
-            // unless we intend to load existing then modify. Session storage model suggests new instances.
-            // $appApplicantModel = new AppApplicant(); // Or load existing if updating directly
-            // $workExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
+
+            // Initialize AppApplicant model ($appApplicantModel)
+            // It will be specifically loaded/created in the STEP_PERSONAL_DETAILS block if needed
+            // or for other steps like STEP_APPLICANT_SPECIFICS (which is now the last, potentially empty step)
+            $appApplicantModel = $model->isNewRecord ? new AppApplicant() : ($model->appApplicant ?? new AppApplicant());
+            if (!$model->isNewRecord && $appApplicantModel->isNewRecord) {
+                $appApplicantModel->applicant_user_id = $model->applicant_user_id;
+            }
+
+
+            // $workExpModel will be initialized in its own step processing block
+            $workExpModel = null;
+
 
             $stepSessionKey = $wizardDataKeyPrefix . 'data_step_' . $currentProcessingStep;
             $isValid = false;
@@ -145,206 +155,130 @@ class ApplicantUserController extends Controller
 
             if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS) {
                 $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
-                if ($model->load($postData) && $model->validate()) {
-                    $session->set($stepSessionKey, $model->getAttributes());
+                // Also ensure $appApplicantModel is available and linked if $model exists
+                if ($applicant_user_id && !$model->isNewRecord) {
+                    $appApplicantModel = $model->appApplicant ?? new AppApplicant(['applicant_user_id' => $applicant_user_id]);
+                    if ($appApplicantModel->isNewRecord) {
+                         $appApplicantModel->applicant_user_id = $applicant_user_id;
+                    }
+                } else {
+                     $appApplicantModel = new AppApplicant(); // Will be linked if $model is saved and gets an ID
+                }
+
+                $modelLoaded = $model->load($postData);
+                $appApplicantModelLoaded = $appApplicantModel->load($postData); // Load data for AppApplicant
+
+                $modelValid = $model->validate();
+                $appApplicantModelValid = $appApplicantModel->validate();
+
+                if ($modelLoaded && $modelValid && $appApplicantModelLoaded && $appApplicantModelValid) {
                     $isValid = true;
-                    if ($model->isNewRecord) {
-                        if ($model->save(false)) {
-                            $applicant_user_id = $model->applicant_user_id;
-                            $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
-                            $appApplicantModel->applicant_user_id = $applicant_user_id;
-                        } else {
-                            $isValid = false;
-                            $stepRenderData['message'] = 'Failed to save personal details.';
-                            Yii::error($model->errors);
-                        }
+                    // Save AppApplicantUser if it's new or existing
+                    if (!$model->save(false)) { // Save without re-validating, already validated
+                        $isValid = false;
+                        $stepRenderData['message'] = 'Failed to save personal identity details.';
+                        Yii::error($model->errors);
                     } else {
-                        if (!$model->save(false)) {
-                            $isValid = false;
-                            $stepRenderData['message'] = 'Failed to update personal details.';
-                            Yii::error($model->errors);
+                        // If $model was new, it now has an ID. Link $appApplicantModel.
+                        if ($model->isNewRecord || !$applicant_user_id) { // Check if $model was new or $applicant_user_id wasn't set before
+                             $applicant_user_id = $model->applicant_user_id; // Get the new/confirmed ID
+                             $session->set($wizardDataKeyPrefix . 'applicant_user_id', $applicant_user_id);
+                             $appApplicantModel->applicant_user_id = $applicant_user_id; // Link $appApplicantModel
                         }
+                        // Session data for personal details will now be an array containing both model attributes
+                        $session->set($stepSessionKey, [
+                            'user' => $model->getAttributes(),
+                            'applicant' => $appApplicantModel->getAttributes()
+                        ]);
                     }
                 } else {
                     $isValid = false;
-                    if (empty($stepRenderData['message'])) $stepRenderData['message'] = 'Please correct errors in Personal Details.';
+                    $errorsCombined = array_merge($model->getErrors(), $appApplicantModel->getErrors());
+                    $errorSummary = [];
+                    foreach ($errorsCombined as $attributeErrors) {
+                        foreach ($attributeErrors as $error) {
+                            $errorSummary[] = $error;
+                        }
+                    }
+                    $stepRenderData['message'] = 'Please correct errors in Personal Details: ' . implode(' ', $errorSummary);
                 }
             } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
-                // Initialize $appApplicantModel for the current step
-                if ($applicant_user_id && $model && !$model->isNewRecord) {
-                    // $model is AppApplicantUser, already loaded or re-fetched if $applicant_user_id was present
-                    $appApplicantModel = $model->getAppApplicant()->one();
-                    if (!$appApplicantModel) {
-                        $appApplicantModel = new AppApplicant();
-                        $appApplicantModel->applicant_user_id = $model->applicant_user_id; // Link to existing AppApplicantUser
-                    }
-                } else {
-                    // This case means $applicant_user_id is not yet known (e.g. first step not completed, which shouldn't allow reaching this step)
-                    // or $model is new (its ID isn't set yet).
-                    $appApplicantModel = new AppApplicant();
-                    if ($applicant_user_id) { // If an overall $applicant_user_id is known (e.g. from session)
-                        $appApplicantModel->applicant_user_id = $applicant_user_id;
-                    }
-                }
-
-                // Ensure FK is set if $model exists and has an ID, and $appApplicantModel is an object but not linked
-                if ($appApplicantModel && $model && !$model->isNewRecord && !$appApplicantModel->applicant_user_id) {
-                    $appApplicantModel->applicant_user_id = $model->applicant_user_id;
-                }
-
-                if ($appApplicantModel->load($postData) && $appApplicantModel->validate()) {
-                    $session->set($stepSessionKey, $appApplicantModel->getAttributes());
-                    $isValid = true;
-                } else {
-                    $isValid = false;
-                    if (!$appApplicantModel) { // Should not happen with the above initialization
-                        Yii::error("AppApplicantModel was unexpectedly null before validation for STEP_APPLICANT_SPECIFICS.");
-                        $stepRenderData['message'] = 'Critical error: Applicant details model not available. Please contact support.';
-                    } else {
-                        // Set a general message, and Html::errorSummary will be more specific if $appApplicantModel is available
-                        $summary = Html::errorSummary($appApplicantModel);
-                        $stepRenderData['message'] = 'Please correct errors in Applicant Specifics. ' . $summary;
-                    }
-                }
+                // This is now the last step. As per requirements, its fields were moved to Personal Details.
+                // This step might be empty or a confirmation/summary. For now, assume it's just a passthrough.
+                // If it needs to save something or load data, that logic would go here.
+                // For now, we just mark it as valid to allow progression/saving.
+                $isValid = true;
+                // If this step is meant to be a final review before saving everything,
+                // no specific data needs to be saved to session for *this* step itself,
+                // as all data is collected in previous steps.
+                // $session->set($stepSessionKey, []); // Example if we need to store something empty
             } elseif ($currentProcessingStep === self::STEP_WORK_EXPERIENCE) {
-                // Initialize $workExpModel for this step.
-                // It's okay if $applicant_user_id is not yet final, or $appApplicantModel->applicant_id is not yet set.
-                // We are saving to session. Linkage will happen in performFinalSave.
-                // if ($isSkippingStep) { // REMOVED SKIP LOGIC
-                // // If skipping, mark as valid and clear any previous session data for this step
-                // $session->remove($stepSessionKey); // Remove data for this step from session
-                // $isValid = true;
-                // } else { // REMOVED ELSE FOR SKIP LOGIC
                 $workExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
                 if ($workExpModel->load($postData)) {
                     if ($workExpModel->validate()) {
-                        // Data is valid, store in session first
                         $session->set($stepSessionKey, $workExpModel->getAttributes());
                         $isValid = true;
-
-                        // Now, attempt to save immediately to DB since it's Option A (Save on Next)
-                        if ($applicant_user_id) { // Ensure we have the main user ID
-                            $appApplicant = AppApplicant::findOne(['applicant_user_id' => $applicant_user_id]);
-                            if (!$appApplicant) {
-                                $appApplicant = new AppApplicant(['applicant_user_id' => $applicant_user_id]);
-                                // Try to save AppApplicant to get its PK (applicant_id)
-                                // We save with validate=false because its own step might not have been completed yet.
-                                // Its full validation and attribute setting will happen in its own step or finalSave.
-                                if (!$appApplicant->save(false)) {
-                                    $isValid = false;
-                                    $stepRenderData['message'] = 'Error: Could not initialize applicant sub-record. Work experience cannot be saved yet. ' . Html::errorSummary($appApplicant);
-                                    Yii::error("Failed to save new AppApplicant (for work exp) with applicant_user_id: $applicant_user_id. Errors: " . print_r($appApplicant->errors, true));
-                                }
-                            } elseif (!$appApplicant->applicant_id) {
-                                // This case should ideally not happen if findOne worked and record exists.
-                                // But if it's an existing model without PK somehow, try saving.
-                                if (!$appApplicant->save(false)) {
-                                    $isValid = false;
-                                    $stepRenderData['message'] = 'Error: Applicant sub-record is incomplete. Work experience cannot be saved yet. ' . Html::errorSummary($appApplicant);
-                                    Yii::error("Failed to save existing AppApplicant (for work exp) that lacked an ID, for applicant_user_id: $applicant_user_id. Errors: " . print_r($appApplicant->errors, true));
-                                }
+                        // Save-on-next logic for work experience (if still applicable)
+                        if ($applicant_user_id) {
+                            $appApplicantForWorkExp = AppApplicant::findOne(['applicant_user_id' => $applicant_user_id]);
+                            if (!$appApplicantForWorkExp) {
+                                // This might occur if personal details (which creates AppApplicant) hasn't been fully processed
+                                // or if there's an issue. For now, we'll try to proceed cautiously.
+                                // It's better if AppApplicant is guaranteed to exist by performFinalSave or earlier step.
+                                // For "save on next", we might need to ensure AppApplicant record exists first.
+                                // This part of the logic might need review based on when AppApplicant is created.
+                                // For now, assume AppApplicant might not have its own PK (applicant_id) yet if saved via session.
+                                 $appApplicantForWorkExp = new AppApplicant(['applicant_user_id' => $applicant_user_id]);
+                                 if (!$appApplicantForWorkExp->save(false)) { // Save to get PK if new
+                                     $isValid = false;
+                                     $stepRenderData['message'] = 'Error: Could not initialize applicant sub-record for work experience. ' . Html::errorSummary($appApplicantForWorkExp);
+                                 }
                             }
 
-                            // Reload $appApplicant to ensure PK is populated if it was new
-                            if ($isValid && $appApplicant->applicant_id) { // Check if appApplicant has an ID now
+                            if ($isValid && $appApplicantForWorkExp && $appApplicantForWorkExp->applicant_id) {
                                 $currentWorkExpData = $session->get($stepSessionKey, []);
                                 $newWorkExpRecord = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
                                 $newWorkExpRecord->setAttributes($currentWorkExpData);
-                                $newWorkExpRecord->applicant_id = $appApplicant->applicant_id;
+                                $newWorkExpRecord->applicant_id = $appApplicantForWorkExp->applicant_id;
 
                                 if ($newWorkExpRecord->save()) {
-                                    // Successfully saved to DB, clear from session to prevent re-save by performFinalSave
-                                    // and to ensure next 'Next' click on this step creates a new record.
-                                    $session->remove($stepSessionKey);
-                                    // Optionally, add a success flash message for this specific save
-                                    // Yii::$app->session->addFlash('info', 'Work experience entry saved.');
+                                    $session->remove($stepSessionKey); // Clear from session
                                 } else {
                                     $isValid = false;
-                                    $stepRenderData['message'] = 'Work experience data is valid, but failed to save to database: ' . Html::errorSummary($newWorkExpRecord);
-                                    Yii::error("Failed to save AppApplicantWorkExp for applicant_id: {$appApplicant->applicant_id}. Errors: " . print_r($newWorkExpRecord->errors, true));
-                                    // Keep data in session if save fails, so user doesn't lose it.
+                                    $stepRenderData['message'] = 'Work experience is valid, but failed to save: ' . Html::errorSummary($newWorkExpRecord);
                                 }
-                            } else if ($isValid) { // $appApplicant->applicant_id was not available
-                                $isValid = false; // Downgrade $isValid because we couldn't get applicant_id
-                                if (empty($stepRenderData['message'])) { // Don't overwrite previous error from appApplicant save
-                                    $stepRenderData['message'] = 'Error: Could not retrieve necessary applicant identifier to save work experience.';
-                                }
-                                Yii::error("Could not obtain valid applicant_id for applicant_user_id: $applicant_user_id to save work experience.");
-                                // Keep data in session.
+                            } elseif ($isValid) {
+                                // $isValid is true, but $appApplicantForWorkExp->applicant_id is not available.
+                                // This means work experience data is valid but cannot be saved to DB yet.
+                                // It will remain in session.
+                                Yii::info("Work experience for applicant_user_id {$applicant_user_id} stored in session, AppApplicant record or ID pending final save for DB persistence.");
                             }
-                        } else { // $applicant_user_id is not available (shouldn't happen if first step is done)
+                        } else {
                             $isValid = false;
-                            $stepRenderData['message'] = 'Error: Applicant session not found. Cannot save work experience.';
-                            Yii::error("applicant_user_id not available when trying to save work experience.");
-                            // Keep data in session.
-                        }
-                    } else { // workExpModel validation failed
-                        $isValid = false;
-                        $stepRenderData['message'] = Html::errorSummary($workExpModel);
-                    }
-                } else { // workExpModel->load($postData) failed
-                    $isValid = false;
-                    $stepRenderData['message'] = 'Could not load work experience data.';
-                }
-            } elseif ($currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
-                $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
-                $model->profile_image_file = UploadedFile::getInstance($model, 'profile_image_file');
-                $oldProfileImage = $model->profile_image;
-
-                if ($model->load($postData)) {
-                    if (!$model->profile_image_file) {
-                        $model->profile_image = $oldProfileImage;
-                    }
-                    if ($model->validate()) {
-                        $isValid = true;
-                        if ($model->profile_image_file) {
-                            $uploadPath = Yii::getAlias('@webroot/img/profile/');
-                            if (!is_dir($uploadPath)) {
-                                FileHelper::createDirectory($uploadPath);
-                            }
-                            $uniqueFilename = Yii::$app->security->generateRandomString() . '.' . $model->profile_image_file->extension;
-                            $filePath = $uploadPath . $uniqueFilename;
-                            if ($model->profile_image_file->saveAs($filePath)) {
-                                if ($oldProfileImage && $oldProfileImage !== $uniqueFilename && file_exists($uploadPath . $oldProfileImage)) {
-                                    @unlink($uploadPath . $oldProfileImage);
-                                }
-                                $model->profile_image = $uniqueFilename;
-                            } else {
-                                $isValid = false;
-                                $model->addError('profile_image_file', 'Could not save the uploaded image.');
-                                $stepRenderData['message'] = 'Error saving profile image. Please try again or contact support.';
-                            }
+                            $stepRenderData['message'] = 'Error: Applicant session not found for work experience.';
                         }
                     } else {
                         $isValid = false;
-                        if ($model->hasErrors('profile_image_file')) {
-                            $stepRenderData['message'] = 'Profile image error: ' . $model->getFirstError('profile_image_file');
-                        } elseif (empty($stepRenderData['message'])) {
-                            $stepRenderData['message'] = 'Please correct the errors in Account Settings.';
-                        }
+                        $stepRenderData['message'] = Html::errorSummary($workExpModel);
                     }
                 } else {
                     $isValid = false;
-                    $stepRenderData['message'] = 'Could not load account settings data. Please try again.';
-                }
-                if ($isValid) {
-                    $session->set($stepSessionKey, $model->getAttributes(['username', 'password', 'profile_image', 'change_pass']));
+                    $stepRenderData['message'] = 'Could not load work experience data.';
                 }
             }
+            // Removed STEP_ACCOUNT_SETTINGS block
 
             if ($isValid) {
                 if ($action === 'next') {
                     if ($currentStepIndex < count($this->_steps) - 1) {
                         $activeRenderStep = $this->_steps[$currentStepIndex + 1];
                     } else {
-                        // Should ideally not happen if 'Next' is hidden on last step, but as a fallback:
-                        $activeRenderStep = $currentProcessingStep; // Stay on current if it's the last
+                        $activeRenderStep = $currentProcessingStep;
                     }
                     $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
 
                     if ($request->isAjax) {
                         try {
-                            // Destructure all models returned by loadModelsForStep
                             list($nextModel, $nextAppApplicantModel, $nextWorkExpModel) = $this->loadModelsForStep(
                                 $activeRenderStep,
                                 $applicant_user_id,
@@ -354,16 +288,15 @@ class ApplicantUserController extends Controller
 
                             $stepViewFilePath = Yii::getAlias('@app/views/applicant-user/' . $activeRenderStep . '.php');
                             if (!file_exists($stepViewFilePath)) {
-                                Yii::error("Wizard step view file not found when preparing next step: {$stepViewFilePath} for step key {$activeRenderStep}");
-                                return ['success' => false, 'message' => "Error: The content for step '" . Html::encode($activeRenderStep) . "' is unavailable (view file missing)."];
+                                Yii::error("Wizard step view file not found: {$stepViewFilePath} for step {$activeRenderStep}");
+                                return ['success' => false, 'message' => "Error: Content for step '" . Html::encode($activeRenderStep) . "' is unavailable."];
                             }
 
-                            // Pass all necessary models to renderAjax
                             $viewParams = [
                                 'model' => $nextModel,
                                 'appApplicantModel' => $nextAppApplicantModel,
-                                'workExpModel' => $nextWorkExpModel, // Pass the work experience model
-                                'stepData' => [], // Fresh step, so no specific stepData messages yet
+                                'workExpModel' => $nextWorkExpModel,
+                                'stepData' => [],
                                 'steps' => $this->_steps,
                                 'currentStepForView' => $activeRenderStep
                             ];
@@ -374,58 +307,51 @@ class ApplicantUserController extends Controller
                                 if ($appUser && $appUser->appApplicant) {
                                     $fetchedWorkExperiences = AppApplicantWorkExp::find()
                                         ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
-                                        ->orderBy(['year_from' => SORT_DESC])
-                                        ->asArray()
-                                        ->all();
+                                        ->orderBy(['year_from' => SORT_DESC])->asArray()->all();
                                     $viewParams['existingWorkExperiences'] = $fetchedWorkExperiences;
                                 }
                             }
 
                             $jsonResponse = ['success' => true, 'html' => $this->renderAjax($activeRenderStep, $viewParams), 'nextStep' => $activeRenderStep, 'applicant_user_id' => $applicant_user_id];
 
-                            // Add personal names to JSON response if next step is work experience, for auto-fill
                             if ($activeRenderStep === self::STEP_WORK_EXPERIENCE) {
-                                $personalDetailsFromSession = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []);
+                                $personalDetailsSessionData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []);
+                                $userAttributes = $personalDetailsSessionData['user'] ?? [];
                                 $jsonResponse['personalNames'] = [
-                                    'firstName' => $personalDetailsFromSession['first_name'] ?? '',
-                                    'surname' => $personalDetailsFromSession['surname'] ?? '',
+                                    'firstName' => $userAttributes['first_name'] ?? '',
+                                    'surname' => $userAttributes['surname'] ?? '',
                                 ];
-                                // Also include existingWorkExperiences in jsonResponse if JS needs it separately
-                                // (it's now also available to the view via $viewParams)
                                 if ($fetchedWorkExperiences !== null) {
                                     $jsonResponse['existingWorkExperiences'] = $fetchedWorkExperiences;
                                 }
                             }
                             return $jsonResponse;
                         } catch (NotFoundHttpException $e) {
-                            Yii::error("NotFoundHttpException while preparing AJAX content for step '{$activeRenderStep}', applicant ID '{$applicant_user_id}': " . $e->getMessage());
-                            return ['success' => false, 'message' => "Error: Could not load data for the next step. The requested applicant record (ID: " . Html::encode($applicant_user_id) . ") may not exist. Please restart the wizard."];
+                            Yii::error("NotFoundHttpException for step '{$activeRenderStep}', ID '{$applicant_user_id}': " . $e->getMessage());
+                            return ['success' => false, 'message' => "Error: Could not load data for next step. Record (ID: " . Html::encode($applicant_user_id) . ") may not exist."];
                         } catch (\Throwable $e) {
-                            Yii::error("General exception while preparing next step '{$activeRenderStep}' for applicant ID '{$applicant_user_id}': " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
-                            return ['success' => false, 'message' => "An unexpected error occurred while preparing the next step ('" . Html::encode($activeRenderStep) . "'). Please try again or contact support."];
-                        } // *** ADDED TRY-CATCH BLOCK END ***
+                            Yii::error("Exception for step '{$activeRenderStep}', ID '{$applicant_user_id}': " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
+                            return ['success' => false, 'message' => "Unexpected error for step ('" . Html::encode($activeRenderStep) . "')."];
+                        }
                     }
-                } elseif ($action === 'save' && $currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
+                } elseif ($action === 'save' && $currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) { // Save is on the new last step
                     $finalSaveResult = $this->performFinalSave($applicant_user_id, $session, $wizardDataKeyPrefix);
                     if ($finalSaveResult['success']) {
-                        // MODIFIED RESPONSE for successful save
                         if ($request->isAjax) {
                             return [
                                 'success' => true,
                                 'completed' => true,
                                 'message' => 'Your details have been saved successfully!',
                                 'applicant_user_id' => $applicant_user_id
-                                // Removed 'redirectUrl'
                             ];
                         }
-                        // Fallback for non-AJAX, though wizard is primarily AJAX
                         Yii::$app->session->setFlash('success', 'Applicant details saved successfully.');
                         return $this->redirect(['view', 'applicant_user_id' => $applicant_user_id]);
                     } else {
                         $activeRenderStep = $currentProcessingStep;
                         $session->set($wizardDataKeyPrefix . 'current_step', $activeRenderStep);
                         $messageForUser = $finalSaveResult['message'] ?? $stepRenderData['message'] ?? 'Failed to save details.';
-                        if ($request->isAjax) return ['success' => false, 'errors' => $finalSaveResult['errors'], 'message' => $messageForUser];
+                        if ($request->isAjax) return ['success' => false, 'errors' => $finalSaveResult['errors'] ?? [], 'message' => $messageForUser];
                         $stepRenderData['message'] = $messageForUser;
                     }
                 } else {
@@ -438,24 +364,19 @@ class ApplicantUserController extends Controller
 
                 if ($request->isAjax) {
                     $errors = [];
-                    if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS || $currentProcessingStep === self::STEP_ACCOUNT_SETTINGS) {
-                        $errors = $model->getErrors();
+                    if ($currentProcessingStep === self::STEP_PERSONAL_DETAILS) {
+                        // Errors could be from $model (AppApplicantUser) or $appApplicantModel (AppApplicant)
+                        $errors = array_merge($model->getErrors(), $appApplicantModel->getErrors());
                     } elseif ($currentProcessingStep === self::STEP_APPLICANT_SPECIFICS) {
-                        // $appApplicantModel might not be initialized if POST is for another step.
-                        // This section assumes $appApplicantModel is the one being validated.
-                        // If $appApplicantModel was loaded from $postData:
-                        if (isset($appApplicantModel) && $appApplicantModel->load($postData)) $errors = $appApplicantModel->getErrors();
-                        else $errors = ['applicant_specifics' => 'Could not load data.'];
+                        // This step is now largely a pass-through or confirmation.
+                        // Errors here would be if the step itself had validation, which it currently doesn't.
+                        // If $appApplicantModel was specifically loaded and validated here:
+                        // if (isset($appApplicantModel) && $appApplicantModel->load($postData)) $errors = $appApplicantModel->getErrors();
+                        // else $errors = ['applicant_specifics' => 'Could not load data.'];
+                         $errors = []; // No specific errors for this step currently
                     } elseif ($currentProcessingStep === self::STEP_WORK_EXPERIENCE) {
-                        // $workExpModel is initialized and validated within its POST block.
-                        // $errors should be from that $workExpModel instance.
-                        // The $workExpModel from the loop start might be null or a different instance.
-                        // This part of the code is reached if $isValid is false.
-                        // The $workExpModel that failed validation was local to the STEP_WORK_EXPERIENCE block.
-                        // We need to re-fetch or ensure it's available.
-                        // For simplicity, message is usually enough. If field-specific errors are needed:
                         $tempWorkExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
-                        $tempWorkExpModel->load($postData); // Load again to get errors
+                        $tempWorkExpModel->load($postData);
                         $tempWorkExpModel->validate();
                         $errors = $tempWorkExpModel->getErrors();
                     }
@@ -549,24 +470,28 @@ class ApplicantUserController extends Controller
         // Set scenarios for models based on the current step for initial rendering
         if ($currentStep === self::STEP_PERSONAL_DETAILS) {
             $model->scenario = AppApplicantUser::SCENARIO_STEP_PERSONAL_DETAILS;
-        } elseif ($currentStep === self::STEP_ACCOUNT_SETTINGS) {
-            $model->scenario = AppApplicantUser::SCENARIO_STEP_ACCOUNT_SETTINGS;
-        } elseif ($currentStep === self::STEP_WORK_EXPERIENCE && isset($workExpModel)) {
+            // $appApplicantModel does not have specific scenarios mentioned for steps in its model,
+            // but if it did, one would be set here. e.g. $appApplicantModel->scenario = AppApplicant::SCENARIO_WIZARD_STEP;
+        }
+        // Removed Account Settings scenario setting
+        elseif ($currentStep === self::STEP_WORK_EXPERIENCE && isset($workExpModel)) {
             $workExpModel->scenario = AppApplicantWorkExp::SCENARIO_WIZARD;
         }
-        // Add similar for AppApplicant if it has scenarios for its step.
+        // Add similar for AppApplicant if it has scenarios for its step. (e.g. for STEP_APPLICANT_SPECIFICS if it had fields)
 
         // Prepare personal names for JS auto-fill if available
         $personalNamesForJs = null;
         $personalDetailsSessionData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []);
-        if (!empty($personalDetailsSessionData['first_name']) || !empty($personalDetailsSessionData['surname'])) {
+        // Personal details data is now nested
+        $userAttributes = $personalDetailsSessionData['user'] ?? [];
+        if (!empty($userAttributes['first_name']) || !empty($userAttributes['surname'])) {
             $personalNamesForJs = [
-                'firstName' => $personalDetailsSessionData['first_name'] ?? '',
-                'surname' => $personalDetailsSessionData['surname'] ?? '',
+                'firstName' => $userAttributes['first_name'] ?? '',
+                'surname' => $userAttributes['surname'] ?? '',
             ];
         }
 
-        return $this->render('update-wizard', [
+        $renderParams = [
             'currentStep' => $currentStep,
             'model' => $model,
             'appApplicantModel' => $appApplicantModel,
@@ -579,12 +504,17 @@ class ApplicantUserController extends Controller
         // For initial page load, if the current step is work experience, fetch existing experiences
         if ($currentStep === self::STEP_WORK_EXPERIENCE && $applicant_user_id) {
             $appUser = AppApplicantUser::findOne($applicant_user_id);
-            if ($appUser && $appUser->appApplicant) {
-                $renderParams['existingWorkExperiences'] = AppApplicantWorkExp::find()
-                    ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
-                    ->orderBy(['year_from' => SORT_DESC])
-                    ->asArray()
-                    ->all();
+            if ($appUser && $appUser->appApplicant) { // Check appApplicant relation
+                // Ensure appApplicant itself has an ID, which is needed for linking work experiences
+                if ($appUser->appApplicant->applicant_id) {
+                    $renderParams['existingWorkExperiences'] = AppApplicantWorkExp::find()
+                        ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
+                        ->orderBy(['year_from' => SORT_DESC])
+                        ->asArray()
+                        ->all();
+                } else {
+                     $renderParams['existingWorkExperiences'] = []; // No PK on AppApplicant yet
+                }
             }
         }
         return $this->render('update-wizard', $renderParams);
@@ -592,103 +522,89 @@ class ApplicantUserController extends Controller
 
     protected function loadModelsForStep($step, $applicant_user_id, $session, $wizardDataKeyPrefix, $existingModel = null, $existingAppApplicantModel = null)
     {
-        // Ensure $existingModel is the correct AppApplicantUser instance
         if ($existingModel instanceof AppApplicantUser) {
-            if ($applicant_user_id && $existingModel->applicant_user_id != $applicant_user_id) {
-                // If ID mismatch, or if $existingModel was new but we now have an ID, refetch.
-                $model = $this->findModel($applicant_user_id);
-            } else {
-                $model = $existingModel;
-            }
+            $model = ($applicant_user_id && $existingModel->applicant_user_id != $applicant_user_id) ? $this->findModel($applicant_user_id) : $existingModel;
         } else {
             $model = $applicant_user_id ? $this->findModel($applicant_user_id) : new AppApplicantUser();
         }
 
-        // Handle AppApplicant model
         if ($existingAppApplicantModel instanceof AppApplicant) {
             $appApplicantModel = $existingAppApplicantModel;
         } else {
             $appApplicantModel = ($applicant_user_id && $model->appApplicant) ? $model->appApplicant : new AppApplicant();
         }
-        if ($applicant_user_id && $model->isNewRecord == false && !$appApplicantModel->applicant_user_id) { // if AppApplicantUser exists, ensure AppApplicant is linked
+
+        if ($applicant_user_id && !$model->isNewRecord && !$appApplicantModel->applicant_user_id) {
             $appApplicantModel->applicant_user_id = $model->applicant_user_id;
         }
 
-
-        // Initialize WorkExpModel - always new for this method, session data populates it.
         $workExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
 
-
-        if ($applicant_user_id && !$appApplicantModel->applicant_user_id && $model && !$model->isNewRecord) {
-            $appApplicantModel->applicant_user_id = $model->applicant_user_id;
-        }
-
-
-        // Load data from session for the *specific step being loaded*
-        // This was changed to load only current step's data into its model
-        // For general loading, we load based on $step parameter
         $dataForThisStep = $session->get($wizardDataKeyPrefix . 'data_step_' . $step, []);
         if (!empty($dataForThisStep)) {
             if ($step === self::STEP_PERSONAL_DETAILS) {
-                $model->setAttributes($dataForThisStep, false);
+                // Data is now nested: ['user' => {...}, 'applicant' => {...}]
+                if (isset($dataForThisStep['user'])) {
+                    $model->setAttributes($dataForThisStep['user'], false);
+                }
+                if (isset($dataForThisStep['applicant'])) {
+                    $appApplicantModel->setAttributes($dataForThisStep['applicant'], false);
+                }
             } elseif ($step === self::STEP_APPLICANT_SPECIFICS) {
-                $appApplicantModel->setAttributes($dataForThisStep, false);
-            } elseif ($step === self::STEP_ACCOUNT_SETTINGS) {
-                $model->setAttributes($dataForThisStep, false);
-            } elseif ($step === self::STEP_WORK_EXPERIENCE) {
+                // This step is now empty of fields by default, but if it had data:
+                // $appApplicantModel->setAttributes($dataForThisStep, false); // Or whatever model it uses
+            }
+            // Removed STEP_ACCOUNT_SETTINGS handling
+            elseif ($step === self::STEP_WORK_EXPERIENCE) {
                 $workExpModel->setAttributes($dataForThisStep, false);
             }
         }
-
-        // Always return all models that any step might need.
         return [$model, $appApplicantModel, $workExpModel];
     }
 
     protected function performFinalSave($applicant_user_id, $session, $wizardDataKeyPrefix)
     {
         if (empty($applicant_user_id)) {
-            return ['success' => false, 'message' => 'Applicant User ID is missing. Cannot save.', 'errors' => []];
+            return ['success' => false, 'message' => 'Applicant User ID is missing.', 'errors' => []];
         }
 
-        $finalModel = $this->findModel($applicant_user_id);
-        $finalAppApplicantModel = $finalModel->getAppApplicant()->one() ?? new AppApplicant();
-        $finalAppApplicantModel->applicant_user_id = $applicant_user_id; // Ensure FK is set
+        $finalModel = $this->findModel($applicant_user_id); // AppApplicantUser
+        $finalAppApplicantModel = $finalModel->appApplicant ?? new AppApplicant();
+        if ($finalAppApplicantModel->isNewRecord) {
+            $finalAppApplicantModel->applicant_user_id = $applicant_user_id;
+        }
 
         // Load data from session for each step
-        // Personal details data is already part of $finalModel through findModel and subsequent step loads if any.
-        // $personalDetailsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []);
-        // $finalModel->setAttributes($personalDetailsData, false); // Already handled by session loads for current step or direct load
-
-        $applicantSpecificsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_APPLICANT_SPECIFICS, []);
-        $accountSettingsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_ACCOUNT_SETTINGS, []);
+        $personalDetailsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_PERSONAL_DETAILS, []);
+        // $applicantSpecificsData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_APPLICANT_SPECIFICS, []); // This step is now empty of fields
         $workExpData = $session->get($wizardDataKeyPrefix . 'data_step_' . self::STEP_WORK_EXPERIENCE, []);
+        // Account settings data is removed
 
-        // Set attributes for AppApplicantUser from Account Settings
-        // Personal details attributes should already be on $finalModel from its step or initial load
-        $finalModel->setAttributes($accountSettingsData, false); // Overwrites only fields in accountSettingsData
-        $finalModel->scenario = AppApplicantUser::SCENARIO_DEFAULT; // Set to default for full validation before save
+        // Set attributes for AppApplicantUser from personal details step
+        if (isset($personalDetailsData['user'])) {
+            $finalModel->setAttributes($personalDetailsData['user'], false);
+        }
+        $finalModel->scenario = AppApplicantUser::SCENARIO_DEFAULT; // Full validation
 
-        // Set attributes for AppApplicant from its step data
-        $finalAppApplicantModel->setAttributes($applicantSpecificsData, false);
-        // $finalAppApplicantModel->scenario = AppApplicant::SCENARIO_DEFAULT; // If AppApplicant has scenarios
+        // Set attributes for AppApplicant from personal details step
+        if (isset($personalDetailsData['applicant'])) {
+            $finalAppApplicantModel->setAttributes($personalDetailsData['applicant'], false);
+        }
+        // $finalAppApplicantModel->scenario = AppApplicant::SCENARIO_DEFAULT; // If it has scenarios
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            if ($finalModel->save()) { // Save AppApplicantUser
-                // Important: Ensure applicant_user_id is set on finalAppApplicantModel if it's new
-                if ($finalAppApplicantModel->isNewRecord) {
-                    $finalAppApplicantModel->applicant_user_id = $finalModel->applicant_user_id;
-                }
-
-                if ($finalAppApplicantModel->save()) { // Save AppApplicant
-                    // Now handle AppApplicantWorkExp
+            if ($finalModel->save()) {
+                if ($finalAppApplicantModel->save()) {
+                    // Handle AppApplicantWorkExp - this logic assumes multiple entries are not saved from one step,
+                    // but rather one at a time if "save on next" was used, or one final entry if submitted at end.
+                    // If workExpData from session represents a single record to be saved/updated:
                     if (!empty($workExpData)) {
-                        $finalWorkExpModel = AppApplicantWorkExp::findOne(['applicant_id' => $finalAppApplicantModel->applicant_id]);
-                        if (!$finalWorkExpModel) {
-                            $finalWorkExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
-                        }
+                         // If work experiences were saved one-by-one and session cleared, this $workExpData might be empty.
+                         // If it's meant to save a pending one from session:
+                        $finalWorkExpModel = new AppApplicantWorkExp(['scenario' => AppApplicantWorkExp::SCENARIO_WIZARD]);
                         $finalWorkExpModel->setAttributes($workExpData, false);
-                        $finalWorkExpModel->applicant_id = $finalAppApplicantModel->applicant_id; // Link to AppApplicant
+                        $finalWorkExpModel->applicant_id = $finalAppApplicantModel->applicant_id;
 
                         if (!$finalWorkExpModel->save()) {
                             $transaction->rollBack();
@@ -698,19 +614,18 @@ class ApplicantUserController extends Controller
                     }
 
                     $transaction->commit();
-                    // Clear session data for all steps after successful save
                     foreach ($this->_steps as $s) {
                         $session->remove($wizardDataKeyPrefix . 'data_step_' . $s);
                     }
                     $session->remove($wizardDataKeyPrefix . 'applicant_user_id');
                     $session->remove($wizardDataKeyPrefix . 'current_step');
                     return ['success' => true];
-                } else { // AppApplicant save failed
+                } else {
                     $transaction->rollBack();
                     Yii::error($finalAppApplicantModel->errors);
                     return ['success' => false, 'message' => 'Error saving applicant specifics: ' . Html::errorSummary($finalAppApplicantModel), 'errors' => $finalAppApplicantModel->getErrors()];
                 }
-            } else { // AppApplicantUser save failed
+            } else {
                 $transaction->rollBack();
                 Yii::error($finalModel->errors);
                 return ['success' => false, 'message' => 'Error saving applicant user details: ' . Html::errorSummary($finalModel), 'errors' => $finalModel->getErrors()];
@@ -718,7 +633,7 @@ class ApplicantUserController extends Controller
         } catch (\Exception $e) {
             $transaction->rollBack();
             Yii::error("Exception during final save for applicant_user_id {$applicant_user_id}: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
-            return ['success' => false, 'message' => 'An unexpected error occurred while saving: ' . $e->getMessage(), 'errors' => []];
+            return ['success' => false, 'message' => 'An unexpected error occurred: ' . $e->getMessage(), 'errors' => []];
         }
     }
 

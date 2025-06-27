@@ -26,10 +26,9 @@ $this->params['breadcrumbs'][] = $this->title;
 
 // Define titles for each step for the navigation UI
 $stepTitles = [
-    'personal-details' => 'Personal Details',
-    'applicant-work-exp' => 'Work Experience', // Added title for the new step
-    'applicant-specifics' => 'Applicant Specifics',
-    'account-settings' => 'Account Settings',
+    'personal-details' => 'Personal Details & Specifics', // Combined step
+    'applicant-work-exp' => 'Work Experience',
+    'applicant-specifics' => 'Final Review', // Renamed last step, as its fields moved
 ];
 
 $navItems = [];
