@@ -576,7 +576,7 @@ class ApplicantUserController extends Controller
             ];
         }
 
-        return $this->render('update-wizard', [
+        $renderParams = [
             'currentStep' => $currentStep,
             'model' => $model,
             'appApplicantModel' => $appApplicantModel,
@@ -584,12 +584,12 @@ class ApplicantUserController extends Controller
             'stepData' => $stepRenderData,
             'steps' => $this->_steps,
             'personalNamesForJs' => $personalNamesForJs, // Pass names for JS
-        ]);
+        ];
 
         // For initial page load, if the current step is work experience, fetch existing experiences
         if ($currentStep === self::STEP_WORK_EXPERIENCE && $applicant_user_id) {
             $appUser = AppApplicantUser::findOne($applicant_user_id);
-            if ($appUser && $appUser->appApplicant) {
+            if ($appUser && $appUser->appApplicant && $appUser->appApplicant->applicant_id) { // Ensure applicant_id exists
                 $renderParams['existingWorkExperiences'] = AppApplicantWorkExp::find()
                     ->where(['applicant_id' => $appUser->appApplicant->applicant_id])
                     ->orderBy(['year_from' => SORT_DESC])
